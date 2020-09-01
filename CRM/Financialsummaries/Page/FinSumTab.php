@@ -255,9 +255,10 @@ class CRM_Financialsummaries_Page_FinSumTab extends CRM_Core_Page {
  //				 $only_show_deductibles,  $start_date, $end_date, $format_parm , $font_size );
  		
  		
- $tmp_token_prevyear = $token_tax_prevyear; 				 
+ $tmp_token_prevyear = $token_tax_prevyear;
+ $font_size = 0;
  $tmpTaxTools->process_tax_year( $values, $contactIds , $ct_prefix_id,  $tmp_token_prevyear , 
-         $only_show_deductables, $start_date_prev_year, $end_date_prev_year, $token_format );
+         $only_show_deductables, $start_date_prev_year, $end_date_prev_year, $token_format, $font_size );
  
  
  
@@ -270,7 +271,7 @@ class CRM_Financialsummaries_Page_FinSumTab extends CRM_Core_Page {
  
  $tmp_token_curyear = $token_tax_curyear; 
   $tmpTaxTools->process_tax_year( $values, $contactIds , $ct_prefix_id,   $tmp_token_curyear,   
-    $only_show_deductables,$start_date_cur_year, $end_date_cur_year, $token_format );
+    $only_show_deductables,$start_date_cur_year, $end_date_cur_year, $token_format, $font_size );
  
   
   // TODO: Verify that PayBalances extension is active
