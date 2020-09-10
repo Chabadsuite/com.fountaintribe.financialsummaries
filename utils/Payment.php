@@ -602,7 +602,7 @@ $third_party_col_name  =  $outCustomColumnNames[$custom_field_third_party_label]
 month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date,  
  contrib.currency, contrib.source, valA.label,  contrib.receive_date, c.display_name as paid_by_contact
 	FROM civicrm_contribution contrib LEFT JOIN ".$extra_contrib_info_table_sql." as contrib_info ON contrib.id = contrib_info.entity_id
-        LEFT JOIN civicrm_contact as c ON contrib_info.".$third_party_col_name." = c.id ,
+        LEFT JOIN civicrm_contact as c ON contrib_info." . $third_party_col_name . " = c.id ,
 	civicrm_financial_type ct,
 	civicrm_option_value valA, 
 	civicrm_option_group grpA
@@ -613,19 +613,18 @@ month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date 
 	AND  valA.option_group_id = grpA.id 
 	AND grpA.name = 'contribution_status'
 	AND contrib.total_amount <> 0 
-	".$tmp_exclude_prepays_sql." 
-        AND ( ct.name NOT LIKE 'adjustment-%'  AND ct.name NOT LIKE '%---adjustment-%' )  ".$tmp_contrib_type_ids_for_sql."
-	and contrib_info.".$third_party_col_name." is NOT NULL
+	" . $tmp_exclude_prepays_sql . " 
+        AND ( ct.name NOT LIKE 'adjustment-%'  AND ct.name NOT LIKE '%---adjustment-%' )  " . $tmp_contrib_type_ids_for_sql . "
 	AND contrib.contact_id in ($cid_list) 
-	and contrib.contribution_status_id = valA.value
+	AND contrib.contribution_status_id = valA.value
 	AND valA.name IN ('Completed' )
-	and contrib.is_test = 0";
+	AND contrib.is_test = 0";
 
 
 		
 
     
-    require_once( 'utils/finance/Prepayment.php');
+    require_once( 'utils/Prepayment.php');
     $tmpPrepayment = new Prepayment();
     $tmp_exclude_prepays_sql = $tmpPrepayment->getExcludePrepaymentsSQL();
 	$sql_str ="select t1.*, t2.symbol from ( ".$third_party_sql."
@@ -789,7 +788,9 @@ $dao =& CRM_Core_DAO::executeQuery( $sql_str,   CRM_Core_DAO::$_nullArray ) ;
   }
   
  $format = '';
- populate_default_value(  $values, $contactIDs , $token_to_fill, $token_to_fill,   "Nothing Found for this contact", $format); 
+ require_once('utils/FinancialUtils.php');
+ $tmpFinUtils = new FinancialUtils();
+ $tmpFinUtils->populate_default_value(  $values, $contactIDs , $token_to_fill, $token_to_fill,   "Nothing Found for this contact", $format); 
  
  $money_format = 'USDmoney' ; 
  //populate_default_value(  $values, $contactIDs , $token_bal_short, $token_bal_long,   $total_of_everything, $money_format);

@@ -141,7 +141,7 @@ class TaxTools{
 
 
 		// new stuff, deal with financial types
-		require_once('utils/finance/FinancialCategory.php') ;
+		require_once('utils/FinancialCategory.php') ;
 
 		$tmpFinancialCategory = new FinancialCategory();
 
@@ -1173,7 +1173,9 @@ class TaxTools{
 
 				$format = '';
 				$token_short = $token_long;
-				populate_default_value(  $values, $contactIDs , $token_short, $token_long,   "Nothing Found for this contact", $format);
+				require_once('utils/FinancialUtils.php');
+				$tmpFinUtils = new FinancialUtils();
+				$tmpFinUtils->populate_default_value(  $values, $contactIDs , $token_short, $token_long,   "Nothing Found for this contact", $format);
 
 	}  // end of function.
 

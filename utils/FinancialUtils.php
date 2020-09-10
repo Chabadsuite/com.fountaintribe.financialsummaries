@@ -413,7 +413,7 @@ class FinancialUtils{
 
 		$currency_symbol = "";
 		//print "<br>List for process amount due:".$cid_list;
-		require_once('utils/finance/FinancialCategory.php');
+		require_once('utils/FinancialCategory.php');
 		$tmpFinancialCategory = new FinancialCategory();
 		 
 		 
