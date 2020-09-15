@@ -33,8 +33,9 @@ class CRM_Financialsummaries_Page_FinSumTab extends CRM_Core_Page {
  require_once('utils/FinancialDates.php');
  
  $financialDates = new FinancialDates();
- $FormatterUtil = new FormattingUtils(); 
-  $fiscal_year_start_date_formatted  = $FormatterUtil->get_date_formatted_short_form($financialDates->get_current_fiscal_year_start_date(), $input_format);
+ $FormatterUtil = new FormattingUtils();
+ $fascalYearStartDate = $financialDates->get_current_fiscal_year_start_date();
+  $fiscal_year_start_date_formatted = $FormatterUtil->get_date_formatted_short_form($fascalYearStartDate, $input_format);
   
   require_once ('utils/FinEntitlement.php');
   $entitlement = new FinEntitlement();

@@ -1615,8 +1615,8 @@ and p.is_test = 0
 			$fmt_contrib_type_total_received =$currency_symbol.number_format($contrib_type_total_received, 2);
 			$fmt_contrib_type_total_adjusted = $currency_symbol.number_format($contrib_type_total_adjusted, 2);
 			$fmt_contrib_type_total_balance = $currency_symbol.number_format($contrib_type_total_balance, 2);
-			$fmt_contrib_type_total_due = $currency_symbol.number_format($contrib_type_total_due, 2);
-			$fmt_contrib_type_total_tax_amount = $currency_symbol.number_format($contrib_type_total_tax_amount, 2);
+			$fmt_contrib_type_total_due = $currency_symbol.number_format(!empty($contrib_type_total_due) ? $contrib_type_total_due : 0, 2);
+			$fmt_contrib_type_total_tax_amount = $currency_symbol.number_format(!empty($contrib_type_total_tax_amount) ? $contrib_type_total_tax_amount : 0, 2);
 			 
 			if(strlen($end_date_parm) > 0 ){
 				$tmp_due_cell = "<td style='".$sub_total_num_style."'>". $fmt_contrib_type_total_due."</td>";
@@ -1674,8 +1674,11 @@ and p.is_test = 0
 		 /*
 		  $subtotal_tmp1_html  = "\n<tr><td ".$col_span." ".$sub_total_style.">".$prev_contrib_type." Sub Total:&nbsp; </td>".$tmp_tax_col."<td style='".$sub_total_num_style."'>".$fmt_contrib_type_total_charged."</td><td style='".$sub_total_num_style."'>".$fmt_contrib_type_total_received."</td> <td style='".$sub_total_num_style."'>".$fmt_contrib_type_total_adjusted."</td> <td style='".$sub_total_num_style."'>".$fmt_contrib_type_total_balance."</td>".$tmp_due_cell."</tr><tr><td colspan=6>&nbsp;</td></tr>";
 		  */
-		  
-		 $tmp_obligation_detail_rows[$cur_cid] =  $tmp_obligation_detail_rows[$cur_cid].$tmp_row ;
+
+		if (!empty($cur_cid)) {
+		  $tmp_obligation_detail_rows[$cur_cid] =  $tmp_obligation_detail_rows[$cur_cid].$tmp_row ;
+		}
+
 		 //print "<br>HTML for xx subtotal: <hr>".$subtotal_tmp1_html
 
 		}

@@ -225,8 +225,8 @@ function  financialsummaries_civicrm_tokenValues( &$values, &$contactIDs, $job =
 				$output_wanted = "amount_due";
 				//$tmpFinancialUtils->getAmountDue($values, $contactIDs,  $ct_prefix_id, $token_to_fill, $output_wanted, $end_date_tmp, $start_date_tmp, $include_automated_payments);
 				$include_detailrows  = false;
-	
-				$tmpFinancialUtils->getObligationsShowSubtotals( $values, $contactIDs, $ct_prefix_id, $token_to_fill, $output_wanted, $include_closed_items, $exclude_after_date, $token_date, $where_clause_sql, $include_detailrows ) ;
+				$include_cols = null;
+				$tmpFinancialUtils->getObligationsShowSubtotals( $values, $contactIDs, $ct_prefix_id, $token_to_fill, $output_wanted, $include_closed_items, $exclude_after_date, $token_date, $where_clause_sql, $include_detailrows, $include_cols ) ;
 	
 				 
 				 
@@ -235,7 +235,8 @@ function  financialsummaries_civicrm_tokenValues( &$values, &$contactIDs, $job =
 				$output_wanted = "amount_balance";
 	
 				$include_detailrows = false;
-				$tmpFinancialUtils->getObligationsShowSubtotals( $values, $contactIDs, $ct_prefix_id, $token_to_fill, $output_wanted, $include_closed_items, $exclude_after_date, $token_date, $where_clause_sql, $include_detailrows) ;
+				$include_cols = null;
+				$tmpFinancialUtils->getObligationsShowSubtotals( $values, $contactIDs, $ct_prefix_id, $token_to_fill, $output_wanted, $include_closed_items, $exclude_after_date, $token_date, $where_clause_sql, $include_detailrows, $include_cols) ;
 	
 				 
 			}else{

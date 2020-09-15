@@ -67,7 +67,9 @@ class FormattingUtils{
 
 	function get_date_formatted_short_form(&$parm, &$input_format){
 
-
+		if (empty($parm)) {
+		  return false;
+		}
 
 		$config = CRM_Core_Config::singleton( );
 
