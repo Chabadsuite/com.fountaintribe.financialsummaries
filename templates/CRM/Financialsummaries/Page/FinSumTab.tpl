@@ -88,8 +88,8 @@
             <option value='show_to_today'>Obligations (show column 'due by today')</option>
             <option value='show_to_today_exclude_closed_balances'>Obligations (show column 'due by today', exclude closed balances)</option>
             <option value='show_to_today_exclude_after_fiscalyear_closed_balances'>Obligations (show column 'due by today', exclude closed balances, future fiscal years)</option>
-            <option value='{$token_tax_prevyear}'>Tax Information for Previous Calendar Year ({$prev_year})</option>
-            <option value='{$token_tax_curyear}'>Tax Information for Current Calendar Year ({$cur_year})</option>
+            <!-- <option value='{$token_tax_prevyear}'>Tax Information for Previous Calendar Year ({$prev_year})</option>
+            <option value='{$token_tax_curyear}'>Tax Information for Current Calendar Year ({$cur_year})</option> -->
           </select>
           &nbsp; &nbsp;
           <input type=hidden id='select_tax_start_date' value=''>
@@ -118,14 +118,14 @@
   <h3>Received Details</h3>
   {$values[$cid][$token_completed_payments_long]}
 
-  <h3>Adjustment Details</h3>
+  <!-- <h3>Adjustment Details</h3>
   {$values[$cid][$token_adjustments_payments_long]}
 
   <h3>Prepayments Received Details</h3>
   {$values[$cid][$token_prepayments_long]}
 
   <h3>Received as the Beneficiary of a Third Party</h3>
- 	{$values[$cid][$token_payments_beneficiary]}
+ 	{$values[$cid][$token_payments_beneficiary]} -->
 </div>
 
 
@@ -160,14 +160,14 @@
   <h3>Received Details</h3>
   {$values[$cid][$token_completed_payments_long]}
 
-  <h3>Adjustment Details</h3>
+  <!-- <h3>Adjustment Details</h3>
   {$values[$cid][$token_adjustments_payments_long]}
 
   <h3>Prepayments Received Details</h3>
   {$values[$cid][$token_prepayments_long]}
 
  	<h3>Received as the Beneficiary of a Third Party</h3>
- 	{$values[$cid][$token_payments_beneficiary]}
+ 	{$values[$cid][$token_payments_beneficiary]} -->
 </div>
 
 
@@ -192,14 +192,14 @@
   <h3>Received Details</h3>
   {$values[$cid][$token_completed_payments_long]}
 
-   <h3>Adjustment Details</h3>
+   <!-- <h3>Adjustment Details</h3>
    {$values[$cid][$token_adjustments_payments_long]}
 
    <h3>Prepayments Received Details</h3>
    {$values[$cid][$token_prepayments_long]}
 
    <h3>Received as the Beneficiary of a Third Party</h3>
-   {$values[$cid][$token_payments_beneficiary]}
+   {$values[$cid][$token_payments_beneficiary]} -->
 </div>
 
 
@@ -226,14 +226,14 @@ Do section for 'show_to_today' , do not show closed balances or obligations afte
   <h3>Received Details</h3>
   {$values[$cid][$token_completed_payments_long]}
 
-  <h3>Adjustment Details</h3>
+  <!-- <h3>Adjustment Details</h3>
   {$values[$cid][$token_adjustments_payments_long]}
 
   <h3>Prepayments Received Details</h3>
   {$values[$cid][$token_prepayments_long]}
 
  	<h3>Received as the Beneficiary of a Third Party</h3>
- 	{$values[$cid][$token_payments_beneficiary]}
+ 	{$values[$cid][$token_payments_beneficiary]} -->
 </div>
 
 {**********************************************************************
