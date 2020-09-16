@@ -533,7 +533,7 @@ c.contribution_status_id = valA.value
 AND  valA.option_group_id = grpA.id 
 AND grpA.name = 'contribution_status'
 AND (
-       (valA.label  = 'Pending' || valA.label  = 'In Progress' || valA.label  = 'Overdue') 
+       (valA.label  = 'Pending' || valA.label  = 'In Progress' || valA.label  = 'Overdue' || valA.label  = 'Partially paid' ) 
        OR
        (valA.label  = 'Completed'  ) 
      )
