@@ -1292,9 +1292,34 @@ and p.is_test = 0
 			 
 
 			// NEW: SQL calculated received, adjusted, and balance.
-			$dao_received = $dao->received;
+			if ($dao->status_label == 'Partially paid') {
+			  $partiallyPaidSql = "SELECT SUM(cft.total_amount) as partial_sum
+				FROM civicrm_financial_trxn cft
+				LEFT JOIN civicrm_entity_financial_trxn ceft ON ceft.financial_trxn_id = cft.id
+				WHERE ceft.entity_id = " . $dao->id . "
+				AND cft.is_payment = 1
+				AND ceft.entity_table = 'civicrm_contribution'";
+			  $partiallyPaidDao = CRM_Core_DAO::executeQuery($partiallyPaidSql);
+
+			  while ( $partiallyPaidDao->fetch() ) {
+			    $dao_received = $partiallyPaidDao->partial_sum;
+
+			    if ($dao->balance > $dao_received) {
+			      $dao_balance = $dao->balance - $dao_received;
+			    }
+
+			    if ($dao->amt_due > $dao_received) {
+			      $dao_amt_due = $dao->amt_due - $dao_received;   // only filled in for contributions, not pledges or recur.
+			    }
+			  }
+			}
+			else {
+			  $dao_received = $dao->received;
+			  $dao_balance = $dao->balance;
+			  $dao_amt_due = $dao->amt_due;   // only filled in for contributions, not pledges or recur.
+			}
+
 			$dao_adjusted = $dao->adjusted;
-			$dao_balance = $dao->balance;
 			$dao_line_item_id = $dao->line_item_id;
 			
 			if(isset($dao->tax_amount)){
@@ -1302,8 +1327,6 @@ and p.is_test = 0
 			}else{
 				$dao_tax_amount = "0";
 			}
-			$dao_amt_due = $dao->amt_due;   // only filled in for contributions, not pledges or recur.
-
 			 
 			//$tmp_date_formated = $received_mm_date.'/'.$received_dd_date.'/'.$received_yyyy_date ;
 

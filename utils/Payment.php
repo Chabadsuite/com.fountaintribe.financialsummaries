@@ -313,6 +313,28 @@ valA.name IN ('Completed', 'Refunded' )
 AND contrib.is_test = 0 
 AND contrib.contribution_recur_id IS NULL ".$tmp_legacy_3rd_party_where;   
 
+
+    $partiallyPaidContribs = "SELECT contrib.id as contrib_id, contrib.contact_id as contact_id,
+ct.name as contrib_type, eft.amount as total_amount,
+month( ft.trxn_date ) as mm_date, day(ft.trxn_date ) as dd_date, year(ft.trxn_date ) as yyyy_date,
+contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name,
+'' as pay_method, contrib.check_number, contrib.receive_date, '' as paid_for_contact, '' as rec_type_desc
+FROM civicrm_entity_financial_trxn eft
+LEFT JOIN civicrm_financial_trxn ft ON eft.financial_trxn_id = ft.id
+JOIN civicrm_contribution contrib ON  eft.entity_id = contrib.id AND eft.entity_table = 'civicrm_contribution'
+" . $tmp_legacy_3rd_party_from . " ,
+civicrm_financial_type ct,
+civicrm_option_value valA,
+civicrm_option_group grpA
+WHERE
+" . $date_where_clause . " AND
+eft.entity_id = contrib.id AND contrib.contribution_status_id = valA.value AND
+valA.option_group_id = grpA.id AND grpA.name = 'contribution_status'
+AND ct.id = contrib.financial_type_id AND contrib.contact_id in (  $cid_list )
+AND valA.name IN ('Partially paid') AND ft.is_payment = 1 AND contrib.is_test = 0
+AND contrib.contribution_recur_id IS NULL
+ORDER BY `contrib`.`receive_date` DESC
+";
     
     require_once( 'utils/Prepayment.php');
     $tmpPrepayment = new Prepayment();
@@ -336,6 +358,7 @@ $sql_str ="select t1.*, t2.symbol from (
   UNION ALL ( ".$refund_details_sql." )
   UNION ALL ( ".$participant_refund_sql." ) 
   UNION ALL ( ".$recurring_contribs_sql." ) 
+  UNION ALL ( ".$partiallyPaidContribs." )
  order by contact_id , receive_date ) as t1 
  left join civicrm_currency as t2 on t1.currency = t2.name";
  
