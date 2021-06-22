@@ -77,14 +77,14 @@ $sql_str = "";
  	
  }else{
 
-	  $tmp_legacy_3rd_party_from = " LEFT JOIN ".$extra_contrib_info_table_sql." as contrib_info ON contrib.id = contrib_info.entity_id "  ; 
+	  $tmp_legacy_3rd_party_from = " LEFT JOIN ".$extra_contrib_info_table_sql." as contrib_info ON ANY_VALUE(contrib.id) = contrib_info.entity_id "  ;
       $tmp_legacy_3rd_party_where = " AND contrib_info.".$third_party_col_name." IS NULL ";
 		
 		
-			$third_party_sql_part_a = "SELECT contrib.id as contrib_id , contrib_info.".$third_party_col_name." as contact_id, ct.name as contrib_type , li.line_total as total_amount,
+			$third_party_sql_part_a = "SELECT ANY_VALUE(contrib.id) as contrib_id , contrib_info.".$third_party_col_name." as contact_id, ANY_VALUE(ct.name) as contrib_type , li.line_total as total_amount,
 month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date,  
- contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name, valB.label as pay_method, contrib.check_number, contrib.receive_date, c.display_name as paid_for_contact,  '' as rec_type_desc
-	FROM civicrm_line_item li JOIN civicrm_contribution contrib ON  li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'  LEFT JOIN ".$extra_contrib_info_table_sql." as contrib_info ON contrib.id = contrib_info.entity_id
+ contrib.currency, contrib.source, ANY_VALUE(valA.label), valA.name as contrib_status_name, valB.label as pay_method, contrib.check_number, contrib.receive_date, c.display_name as paid_for_contact,  '' as rec_type_desc
+	FROM civicrm_line_item li JOIN civicrm_contribution contrib ON  li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'  LEFT JOIN ".$extra_contrib_info_table_sql." as contrib_info ON contrib.id = contrib_info.entity_id
         LEFT JOIN civicrm_contact as c ON contrib.contact_id = c.id ,
 	civicrm_financial_type ct,
 	civicrm_option_value valA, 
@@ -108,11 +108,11 @@ month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date 
 	AND valA.name IN ('Completed', 'Refunded' )
 	and contrib.is_test = 0";
 
-	$third_party_sql_part_b = "SELECT contrib.id as contrib_id , contrib_info.".$third_party_col_name." as contact_id, ct.name as contrib_type ,li.line_total as total_amount, 
+	$third_party_sql_part_b = "SELECT ANY_VALUE(contrib.id) as contrib_id , contrib_info.".$third_party_col_name." as contact_id, ANY_VALUE(ct.name) as contrib_type ,li.line_total as total_amount,
 	month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date, 
-	contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name, '' as pay_method, contrib.check_number, contrib.receive_date, c.display_name as paid_for_contact ,  '' as rec_type_desc
- FROM civicrm_line_item li JOIN civicrm_contribution contrib ON  li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'
- LEFT JOIN ".$extra_contrib_info_table_sql." as contrib_info ON contrib.id = contrib_info.entity_id 
+	contrib.currency, contrib.source, ANY_VALUE(valA.label), valA.name as contrib_status_name, '' as pay_method, contrib.check_number, contrib.receive_date, c.display_name as paid_for_contact ,  '' as rec_type_desc
+ FROM civicrm_line_item li JOIN civicrm_contribution contrib ON  li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'
+ LEFT JOIN ".$extra_contrib_info_table_sql." as contrib_info ON ANY_VALUE(contrib.id) = contrib_info.entity_id
  LEFT JOIN civicrm_contact as c ON contrib.contact_id = c.id ,
    civicrm_financial_type ct, 
  civicrm_option_value valA, civicrm_option_group grpA 
@@ -130,13 +130,13 @@ valA.name IN ('Completed' , 'Refunded' ) and contrib.is_test = 0";
  }
  
  
-	$participant_contributions_sql = "SELECT  contrib.id as contrib_id ,contrib.contact_id as contact_id, ct.name as contrib_type , sum(li.line_total) as total_amount, 
+	$participant_contributions_sql = "SELECT  ANY_VALUE(contrib.id) as contrib_id ,contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type , sum(li.line_total) as total_amount,
 	month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date, 
-	contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name, '' as pay_method, contrib.check_number, contrib.receive_date, '' as paid_for_contact ,  '' as rec_type_desc
+	contrib.currency, contrib.source, ANY_VALUE(valA.label), valA.name as contrib_status_name, '' as pay_method, contrib.check_number, contrib.receive_date, '' as paid_for_contact ,  '' as rec_type_desc
 	FROM civicrm_line_item li JOIN civicrm_participant part ON li.entity_id = part.id AND li.entity_table =  'civicrm_participant' 
 	 JOIN civicrm_participant_payment ep ON ifnull( part.registered_by_id, part.id) = ep.participant_id 
-				join civicrm_contribution contrib ON  ep.contribution_id = contrib.id ".$tmp_legacy_3rd_party_from." ,
-	   civicrm_financial_type ct, 
+				join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id) ".$tmp_legacy_3rd_party_from." ,
++          civicrm_financial_type ct,
 	 civicrm_option_value valA, civicrm_option_group grpA 
 	WHERE 
 	 ".$date_where_clause." AND
@@ -146,16 +146,16 @@ valA.name IN ('Completed' , 'Refunded' ) and contrib.is_test = 0";
 	AND contrib.total_amount <> 0 
 	AND contrib.contact_id in (  $cid_list ) and contrib.contribution_status_id = valA.value AND 
 	valA.name IN ('Completed' , 'Refunded' ) and contrib.is_test = 0 ".$tmp_legacy_3rd_party_where.
-	" group by contrib.id, ct.id " ; 			
+	" group by ANY_VALUE(contrib.id), ct.id " ;			
 				
 				
-	$participant_refund_sql = "SELECT  contrib.id as contrib_id ,contrib.contact_id as contact_id, ct.name as contrib_type , ( 0 - sum(li.line_total)) as total_amount, 
+	$participant_refund_sql = "SELECT  ANY_VALUE(contrib.id) as contrib_id ,contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type , ( 0 - sum(li.line_total)) as total_amount,
 	month( contrib.cancel_date ) as mm_date, day(contrib.cancel_date ) as dd_date , year(contrib.cancel_date ) as yyyy_date, 
-	contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name, '' as pay_method, contrib.check_number, contrib.cancel_date as receive_date , '' as paid_for_contact ,  'refund_detail'  as rec_type_desc
+	contrib.currency, contrib.source, ANY_VALUE(valA.label), valA.name as contrib_status_name, '' as pay_method, contrib.check_number, contrib.cancel_date as receive_date , '' as paid_for_contact ,  'refund_detail'  as rec_type_desc
 	FROM civicrm_line_item li JOIN civicrm_participant part ON li.entity_id = part.id AND li.entity_table =  'civicrm_participant' 
 	 JOIN civicrm_participant_payment ep ON ifnull( part.registered_by_id, part.id) = ep.participant_id 
-				join civicrm_contribution contrib ON  ep.contribution_id = contrib.id ".$tmp_legacy_3rd_party_from." ,
-	   civicrm_financial_type ct, 
+				join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id) ".$tmp_legacy_3rd_party_from." ,
++          civicrm_financial_type ct,
 	 civicrm_option_value valA, civicrm_option_group grpA 
 	WHERE 
 	 ".$date_where_clause." AND
@@ -165,14 +165,14 @@ valA.name IN ('Completed' , 'Refunded' ) and contrib.is_test = 0";
 	AND contrib.total_amount <> 0 
 	AND contrib.contact_id in (  $cid_list ) and contrib.contribution_status_id = valA.value AND 
 	valA.name IN ( 'Refunded' ) and contrib.is_test = 0 ".$tmp_legacy_3rd_party_where.
-	" group by contrib.id, ct.id " ; 				
+	" group by ANY_VALUE(contrib.id), ct.id " ;
 		//print "<br><br> participant REFUND contrib sql: ".$participant_refund_sql; 		
 				
 		
-    $refund_details_sql = "SELECT contrib.id as contrib_id , contrib.contact_id as contact_id, ct.name as contrib_type , ( 0 - li.line_total ) as total_amount, 
+    $refund_details_sql = "SELECT ANY_VALUE(contrib.id) as contrib_id , contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type , ( 0 - li.line_total ) as total_amount,
 month( contrib.cancel_date ) as mm_date, day(contrib.cancel_date ) as dd_date , year(contrib.cancel_date ) as yyyy_date,  
- contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name,  valB.label as pay_method, contrib.check_number, contrib.cancel_date as receive_date, '' as paid_for_contact, 'refund_detail' as rec_type_desc
-	FROM civicrm_line_item li JOIN civicrm_contribution contrib ON  li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'  ".$tmp_legacy_3rd_party_from.", 
+ contrib.currency, contrib.source, ANY_VALUE(valA.label), valA.name as contrib_status_name,  valB.label as pay_method, contrib.check_number, contrib.cancel_date as receive_date, '' as paid_for_contact, 'refund_detail' as rec_type_desc
+	FROM civicrm_line_item li JOIN civicrm_contribution contrib ON  li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'  ".$tmp_legacy_3rd_party_from.",
 	civicrm_financial_type ct,
 	civicrm_option_value valA, 
 	civicrm_option_group grpA,
@@ -196,7 +196,7 @@ month( contrib.cancel_date ) as mm_date, day(contrib.cancel_date ) as dd_date , 
 	AND contrib.is_test = 0 ".$tmp_legacy_3rd_party_where;
          
          
-          $tmp_first_contrib = " select contrib.id , contrib.contact_id ,contrib.source, contrib.currency, contrib.check_number, 
+          $tmp_first_contrib = " select ANY_VALUE(contrib.id) , contrib.contact_id ,contrib.source, contrib.currency, contrib.check_number, 
    contrib.contribution_status_id,   contrib.contribution_recur_id , contrib.receive_date, contrib.total_amount, contrib.payment_instrument_id,
    contrib.is_test
        FROM civicrm_contribution contrib 
@@ -236,11 +236,11 @@ month( contrib.cancel_date ) as mm_date, day(contrib.cancel_date ) as dd_date , 
 	month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date, 
 	contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name, '' as pay_method, contrib.check_number, contrib.receive_date, '' as paid_for_contact,  '' as rec_type_desc
 	*/
-      $recurring_contribs_sql = "SELECT contrib.id as contrib_id , contrib.contact_id as contact_id, ct.name as contrib_type , li.line_total as total_amount,  
+      $recurring_contribs_sql = "SELECT ANY_VALUE(contrib.id) as contrib_id , contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type , li.line_total as total_amount,
   month( rcontribs.receive_date ) as mm_date, day(rcontribs.receive_date ) as dd_date , year(rcontribs.receive_date ) as yyyy_date,  
- contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name,  valB.label as pay_method, rcontribs.check_number, rcontribs.receive_date, '' as paid_for_contact, '' as rec_type_desc
+ contrib.currency, contrib.source, ANY_VALUE(valA.label), valA.name as contrib_status_name,  valB.label as pay_method, rcontribs.check_number, rcontribs.receive_date, '' as paid_for_contact, '' as rec_type_desc
 	FROM 
-	civicrm_line_item li JOIN ( $tmp_first_contrib ) contrib ON  li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'
+	civicrm_line_item li JOIN ( $tmp_first_contrib ) contrib ON  li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'
 	JOIN civicrm_contribution rcontribs ON rcontribs.contribution_recur_id = contrib.contribution_recur_id AND rcontribs.contribution_status_id = 1
         ".$tmp_legacy_3rd_party_from." ,
 	civicrm_financial_type ct,
@@ -266,10 +266,10 @@ month( contrib.cancel_date ) as mm_date, day(contrib.cancel_date ) as dd_date , 
 	AND contrib.is_test = 0 
 	AND contrib.contribution_recur_id IS NOT NULL ".$tmp_legacy_3rd_party_where;
       
-      $regular_contribs_sql_part_a = "SELECT contrib.id as contrib_id , contrib.contact_id as contact_id, ct.name as contrib_type , li.line_total as total_amount, 
+      $regular_contribs_sql_part_a = "SELECT ANY_VALUE(contrib.id) as contrib_id , contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type , li.line_total as total_amount,
 month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date,  
- contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name,  valB.label as pay_method, contrib.check_number, contrib.receive_date, '' as paid_for_contact, '' as rec_type_desc
-	FROM civicrm_line_item li JOIN civicrm_contribution contrib ON  li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'
+ contrib.currency, contrib.source, ANY_VALUE(valA.label), valA.name as contrib_status_name,  valB.label as pay_method, contrib.check_number, contrib.receive_date, '' as paid_for_contact, '' as rec_type_desc
+	FROM civicrm_line_item li JOIN civicrm_contribution contrib ON  li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'
         ".$tmp_legacy_3rd_party_from.", 
 	civicrm_financial_type ct,
 	civicrm_option_value valA, 
@@ -294,10 +294,10 @@ month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date 
 	AND contrib.is_test = 0 
 	AND contrib.contribution_recur_id IS NULL ".$tmp_legacy_3rd_party_where;
       
-      $regular_contribs_sql_part_b = " SELECT contrib.id as contrib_id , contrib.contact_id as contact_id, ct.name as contrib_type , li.line_total as total_amount, 
+      $regular_contribs_sql_part_b = " SELECT ANY_VALUE(contrib.id) as contrib_id , contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type , li.line_total as total_amount,
 	month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date, 
-	contrib.currency, contrib.source, valA.label, valA.name as contrib_status_name, '' as pay_method, contrib.check_number, contrib.receive_date, '' as paid_for_contact,  '' as rec_type_desc
- FROM civicrm_line_item li join civicrm_contribution contrib ON  li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'
+	contrib.currency, contrib.source, ANY_VALUE(valA.label), valA.name as contrib_status_name, '' as pay_method, contrib.check_number, contrib.receive_date, '' as paid_for_contact,  '' as rec_type_desc
+ FROM civicrm_line_item li join civicrm_contribution contrib ON  li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'
  ".$tmp_legacy_3rd_party_from." ,
    civicrm_financial_type ct, 
  civicrm_option_value valA, civicrm_option_group grpA 
@@ -621,10 +621,10 @@ $third_party_col_name  =  $outCustomColumnNames[$custom_field_third_party_label]
 		 $third_party_sql = "";
 		
 		
-	 $third_party_sql = "SELECT contrib.contact_id as contact_id, ct.name as contrib_type , contrib.total_amount as total_amount,
+	 $third_party_sql = "SELECT contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type , contrib.total_amount as total_amount,
 month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date,  
- contrib.currency, contrib.source, valA.label,  contrib.receive_date, c.display_name as paid_by_contact
-	FROM civicrm_contribution contrib LEFT JOIN ".$extra_contrib_info_table_sql." as contrib_info ON contrib.id = contrib_info.entity_id
+ contrib.currency, contrib.source, ANY_VALUE(valA.label),  contrib.receive_date, c.display_name as paid_by_contact
+	FROM civicrm_contribution contrib LEFT JOIN ".$extra_contrib_info_table_sql." as contrib_info ON ANY_VALUE(contrib.id) = contrib_info.entity_id
         LEFT JOIN civicrm_contact as c ON contrib_info." . $third_party_col_name . " = c.id ,
 	civicrm_financial_type ct,
 	civicrm_option_value valA, 

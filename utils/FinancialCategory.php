@@ -50,7 +50,7 @@
   	function getFinancialCategoryFieldAsSQL(){
   	
   		$prefix_seperator = "---";
-  		return " SUBSTRING(ct.name , 1, locate( '".$prefix_seperator."' , ct.name) -1 ) as financial_category, ";
+  		return " SUBSTRING(ANY_VALUE(ct.name) , 1, locate( '".$prefix_seperator."' , ANY_VALUE(ct.name)) -1 ) as financial_category, ";
   	
   	}
   

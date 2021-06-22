@@ -157,7 +157,7 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 	
 		
 		
-		 $financial_type_sql = "Select ct.id, ct.name, fa.accounting_code from civicrm_financial_type ct 
+		 $financial_type_sql = "Select ct.id, ANY_VALUE(ct.name), fa.accounting_code from civicrm_financial_type ct
         	 	LEFT JOIN civicrm_entity_financial_account efa ON ct.id = efa.entity_id AND efa.entity_table = 'civicrm_financial_type'
         	 	AND efa.account_relationship = 1 
         	 	LEFT JOIN civicrm_financial_account fa ON efa.financial_account_id = fa.id 
@@ -436,12 +436,12 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
     	$financial_category_field_sql = $tmpFinancialCategory->getFinancialCategoryFieldAsSQL();
     
         if ( $onlyIDs ) {
-        	$select  = "contact_a.id as contact_id, contact_a.id as id ";
+        	$select  = "ANY_VALUE(contact_a.id) as contact_id, ANY_VALUE(contact_a.id) as id ";
     	}else{
     		if($summary_section){
-    			$select = "contact_a.id as contact_id, max(".$tmp_select_field.") as date_parm , 
-   sum(total_amount) as total_amount, currency, max( ct.name) as contribution_type_name, 
-   max( date(expected_date)) as expected_date, max(datediff(date($base_date) , date(expected_date))) as days_overdue, 
+    			$select = "ANY_VALUE(contact_a.id) as contact_id, max(".$tmp_select_field.") as date_parm ,
+   sum(total_amount) as total_amount, currency, max( ANY_VALUE(ct.name)) as contribution_type_name,
+   max( date(expected_date)) as expected_date, max(datediff(date($base_date) , date(expected_date))) as days_overdue,
   sum(".$tmp_30_days.") as days_30, sum(".$tmp_60_days.") as days_60, sum(".$tmp_90_days.") as days_90, sum(".$tmp_91_days.") as days_91_or_more, count(*) as num_records";
     		
     		
@@ -455,7 +455,7 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
     		
     		    
     			$select = "contact_a.id as contact_id, contact_a.sort_name as sort_name, contact_a.contact_type, max(".$tmp_select_field.") as date_parm , 
-    			 sum(total_amount) as total_amount, currency, ct.name as contribution_type_name, 
+    			 sum(total_amount) as total_amount, currency, ANY_VALUE(ct.name) as contribution_type_name,
     			 ".$financial_category_field_sql."
    max( date(expected_date)) as expected_date, max(datediff(date($base_date) ,date(expected_date))) as days_overdue, 
   sum(".$tmp_30_days.") as days_30, sum(".$tmp_60_days.") as days_60, sum(".$tmp_90_days.") as days_90, sum(".$tmp_91_days.") as days_91_or_more, count(*) as num_records,
@@ -466,7 +466,7 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
     		}else{ 
     			
     		  $select = "contact_a.id as contact_id,  contact_a.sort_name as sort_name, contact_a.contact_type, ".$tmp_select_field." as date_parm , 
-			t1.entity_id, t1.entity_type,  total_amount as total_amount, currency, ct.name as contribution_type_name,
+			t1.entity_id, t1.entity_type,  total_amount as total_amount, currency, ANY_VALUE(ct.name) as contribution_type_name,
 			".$financial_category_field_sql."
    date(expected_date) as expected_date, datediff(date($base_date) ,date(expected_date)) as days_overdue,
   ".$tmp_30_days." as days_30, ".$tmp_60_days." as days_60, ".$tmp_90_days." as days_90, ".$tmp_91_days." as days_91_or_more, 1 as num_records,
@@ -680,8 +680,8 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 	// $layout_choice = $this->_formValues['layout_choice'] ;
 	 if( $layout_choice == 'summarize_household_contribution_type' || $layout_choice == 'summarize_household'){
     	
-    		$tmp_contact_sql_contrib = "rel.contact_id_b as household_id , ifnull( rel.contact_id_b,  contrib.contact_id ) as contact_id, contrib.contact_id as underlying_contact_id , ";
-    		$tmp_contact_sql_pledge = "rel.contact_id_b as household_id, ifnull( rel.contact_id_b, p.contact_id ) as contact_id, p.contact_id as underlying_contact_id , ";
+    		$tmp_contact_sql_contrib = "ANY_VALUE(rel.contact_id_b) as household_id , ifnull( ANY_VALUE(rel.contact_id_b),  contrib.contact_id ) as contact_id, contrib.contact_id as underlying_contact_id , ";
+    		$tmp_contact_sql_pledge = "ANY_VALUE(rel.contact_id_b) as household_id, ifnull( ANY_VALUE(rel.contact_id_b), p.contact_id ) as contact_id, p.contact_id as underlying_contact_id , ";
     		
     		$tmp_rel_type_ids = "7, 6";   // Household member of , Head of Household 
     		$tmp_from_sql_contrib = " LEFT JOIN civicrm_relationship rel ON contrib.contact_id = rel.contact_id_a AND rel.is_active = 1 AND rel.is_permission_b_a = 1 AND rel.relationship_type_id IN ( ".$tmp_rel_type_ids." ) ";
@@ -710,7 +710,7 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 	
 	if( strlen($tmp_recur_table_name) > 0 ){
 	
-	$recur_section_sql = "SELECT ".$tmp_contact_sql_contrib." contrib.total_amount, contrib.id as entity_id,  'automatic recurring' as entity_type, 
+	$recur_section_sql = "SELECT ".$tmp_contact_sql_contrib." contrib.total_amount, ANY_VALUE(contrib.id) as entity_id,  'automatic recurring' as entity_type, 
 	   	contrib.receive_date, contrib.currency, contrib.source, '' as label, contrib.financial_type_id, receive_date as expected_date
 		FROM  ".$tmp_recur_table_name." as contrib ".$tmp_from_sql_contrib."
 		LEFT JOIN civicrm_contribution_recur recur ON contrib.contribution_recur_id = recur.id
@@ -733,9 +733,9 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 	*/	
 			
 	
-			$tmp_from = "( (SELECT ".$tmp_contact_sql_contrib."  sum(li.line_total) as total_amount, contrib.id as entity_id, 'contribution' as entity_type,
-	   	contrib.receipt_date, contrib.currency, contrib.source, val.label, li.financial_type_id, contrib.receive_date as expected_date
-		FROM civicrm_line_item li JOIN civicrm_contribution contrib ON li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution' 
+			$tmp_from = "( (SELECT ".$tmp_contact_sql_contrib."  sum(li.line_total) as total_amount, ANY_VALUE(contrib.id) as entity_id, 'contribution' as entity_type,
+	   	contrib.receipt_date, contrib.currency, contrib.source, ANY_VALUE(val.label), li.financial_type_id, contrib.receive_date as expected_date
+		FROM civicrm_line_item li JOIN civicrm_contribution contrib ON li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution' 
 		 ".$tmp_from_sql_contrib." ,
 		civicrm_option_value val, 
 		civicrm_option_group grp
@@ -747,13 +747,13 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 		and val.name in ('Failed', 'Pending', 'Overdue', 'In Progress' )  
 		and contrib.contribution_recur_id is null".$tmp_contrib_where.
 		" and contrib.is_test = 0
-		group by li.financial_type_id, contrib.id )
+		group by li.financial_type_id, ANY_VALUE(contrib.id) )
 		UNION ALL (
-		SELECT ".$tmp_contact_sql_contrib."  sum(li.line_total) as total_amount, contrib.id as entity_id, 'contribution' as entity_type,
-	   	contrib.receipt_date, contrib.currency, contrib.source, val.label, li.financial_type_id, contrib.receive_date as expected_date
+		SELECT ".$tmp_contact_sql_contrib."  sum(li.line_total) as total_amount, ANY_VALUE(contrib.id) as entity_id, 'contribution' as entity_type,
+	   	contrib.receipt_date, contrib.currency, contrib.source, ANY_VALUE(val.label), li.financial_type_id, contrib.receive_date as expected_date
 		FROM civicrm_line_item li JOIN civicrm_participant part ON li.entity_id = part.id AND li.entity_table =  'civicrm_participant' 
 	 JOIN civicrm_participant_payment ep ON ifnull( part.registered_by_id, part.id) = ep.participant_id
-				join civicrm_contribution contrib ON  ep.contribution_id = contrib.id 
+				join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id)
 		 ".$tmp_from_sql_contrib." ,
 		civicrm_option_value val, 
 		civicrm_option_group grp
@@ -765,7 +765,7 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 		and val.name  in ('Failed', 'Pending', 'Overdue', 'In Progress' ) 
 		and contrib.contribution_recur_id is null".$tmp_contrib_where.
 		" and contrib.is_test = 0
-		group by li.financial_type_id, contrib.id
+		group by li.financial_type_id, ANY_VALUE(contrib.id)
 		)
 		UNION ALL
 		( SELECT ".$tmp_contact_sql_pledge."  pp.scheduled_amount as total_amount, pp.id as entity_id , 'pledge payment' as entity_type, 

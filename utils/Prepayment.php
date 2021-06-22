@@ -51,9 +51,9 @@
 		$sql_str = "";
 		
 		
-		$sql_str ="select t1.* , t2.symbol from ( (SELECT contrib.contact_id as contact_id, ct.name as contrib_type , contrib.total_amount as total_amount,
+		$sql_str ="select t1.* , t2.symbol from ( (SELECT contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type , contrib.total_amount as total_amount,
 month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date,  
- contrib.currency, contrib.source, valA.label, valB.label as pay_method, contrib.check_number
+ contrib.currency, contrib.source, ANY_VALUE(valA.label), valB.label as pay_method, contrib.check_number
 	FROM civicrm_contribution contrib,
 	civicrm_financial_type ct,
 	civicrm_option_value valA, 
@@ -76,9 +76,9 @@ month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date 
 	".$date_where_clause."
 order by contrib.receive_date )
 UNION ALL
-( SELECT contrib.contact_id as contact_id, ct.name as contrib_type , contrib.total_amount as total_amount,
+( SELECT contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type , contrib.total_amount as total_amount,
 month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date , year(contrib.receive_date ) as yyyy_date,  
- contrib.currency, contrib.source, valA.label, '' as pay_method, contrib.check_number
+ contrib.currency, contrib.source, ANY_VALUE(valA.label), '' as pay_method, contrib.check_number
 	FROM civicrm_contribution contrib,
 	civicrm_financial_type ct,
 	civicrm_option_value valA, 

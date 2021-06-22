@@ -160,7 +160,7 @@ class CRM_Financialsummaries_Form_Search_contactfinancialsummary extends CRM_Con
   	  
   	 */
   
-  	$financial_type_sql = "Select ct.id, ct.name, fa.accounting_code from civicrm_financial_type ct
+  	$financial_type_sql = "Select ANY_VALUE(ct.id), ANY_VALUE(ct.name), ANY_VALUE(fa.accounting_code) from civicrm_financial_type ct
         	 	LEFT JOIN civicrm_entity_financial_account efa ON ct.id = efa.entity_id AND efa.entity_table = 'civicrm_financial_type'
         	 	AND efa.account_relationship = 1
         	 	LEFT JOIN civicrm_financial_account fa ON efa.financial_account_id = fa.id
@@ -590,7 +590,7 @@ class CRM_Financialsummaries_Form_Search_contactfinancialsummary extends CRM_Con
   
   			//   print "<br><br> sql: ".$sql;
   			if ( $onlyIDs ) {
-  				$outer_select =  "contact_a.id as contact_id";
+  				$outer_select =  "ANY_VALUE(contact_a.id) as contact_id";
   			}else{
   				$outer_select = "contact_b.* , address.street_address, address.city, state.abbreviation as state,  address.postal_code, country.name as country";
   

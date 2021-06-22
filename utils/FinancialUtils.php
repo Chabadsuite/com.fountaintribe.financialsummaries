@@ -665,7 +665,7 @@ and p.is_test = 0
 		$sql_str = "";
 
 		
-			$sql_str = "select contrib.id, contrib.contact_id as contact_id, ct.name as contrib_type,
+			$sql_str = "select ANY_VALUE(contrib.id), contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type,
 			contrib.source as source, contrib.total_amount as total_amount,
 			month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date ,
 			year(contrib.receive_date ) as yyyy_date , civicrm_currency.symbol
@@ -673,7 +673,7 @@ and p.is_test = 0
 			left join civicrm_currency on contrib.currency = civicrm_currency.name
 			where contrib.contact_id IN ( $cid_list )
 			and ".$date_where_clause."
-			and (ct.name LIKE 'adjustment-%' OR ct.name LIKE '%---adjustment-%' ) ".$tmp_contrib_type_ids_for_sql."
+			and (ANY_VALUE(ct.name) LIKE 'adjustment-%' OR ANY_VALUE(ct.name) LIKE '%---adjustment-%' ) ".$tmp_contrib_type_ids_for_sql."
 			and contrib.is_test =0
 			ORDER BY contact_id";
 
@@ -2214,7 +2214,7 @@ GROUP BY pp.pledge_id";
 		 	 
 		 	$sql_str = "( SELECT li.line_total as total_amount,
    	contrib.receipt_date, contrib.currency, contrib.source, val.label
-	FROM civicrm_line_item li JOIN civicrm_contribution contrib ON li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution' ,
+	FROM civicrm_line_item li JOIN civicrm_contribution contrib ON li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution' ,
 	civicrm_option_value val,
 	civicrm_option_group grp
 	WHERE
@@ -2231,7 +2231,7 @@ GROUP BY pp.pledge_id";
    	contrib.receipt_date, contrib.currency, contrib.source, val.label
 	FROM civicrm_line_item li JOIN civicrm_participant part ON li.entity_id = part.id AND li.entity_table =  'civicrm_participant'
 	 JOIN civicrm_participant_payment ep ON ifnull( part.registered_by_id, part.id) = ep.participant_id
-				join civicrm_contribution contrib ON  ep.contribution_id = contrib.id ,
+				join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id) ,
 	civicrm_option_value val,
 	civicrm_option_group grp
 	WHERE

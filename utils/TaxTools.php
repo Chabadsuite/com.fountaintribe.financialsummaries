@@ -73,7 +73,7 @@ class TaxTools{
 		if($show_tax_column){
 			 
 			 
-			$tax_contrib_from_sql =  " LEFT JOIN ".$extended_aussie_contrib_table." ctax ON  contrib.id = ctax.entity_id ";
+			$tax_contrib_from_sql =  " LEFT JOIN ".$extended_aussie_contrib_table." ctax ON  ANY_VALUE(contrib.id) = ctax.entity_id ";
 			$tax_contrib_select_sql = " ctax.".$outAussieCustomColumnNames[$tmp_contrib_tax_amount_label]." as tax_amount_held, ";
 			 
 			 
@@ -172,7 +172,7 @@ class TaxTools{
 	     ELSE 0 END ";
 
 	 $gen_where_clause = " AND li.line_total <> 0
-	AND ( ct.name NOT LIKE 'adjustment-%'  AND  ct.name NOT LIKE '%---adjustment-%' )
+	AND ( ANY_VALUE(ct.name)ANY_VALUE( NOT LIKE 'adjustment-%'  AND  ANY_VALUE(ct.name) NOT LIKE '%---adjustment-%' )
 	AND contrib.contribution_status_id = val.value
 	AND  val.option_group_id = grp.id
 	AND grp.name = 'contribution_status'
@@ -192,42 +192,42 @@ class TaxTools{
 
 	 	$gen_group_by  = " group by li.entity_id , li.financial_type_id ";
 
-	 	$gen_select_clause =  "contrib.id,
+	 	$gen_select_clause =  "ANY_VALUE(contrib.id),
 	 	contrib.total_amount   as total_amount ,
 	 	contrib.total_amount - contrib.non_deductible_amount as deductible_amount,
-	 	civicrm_currency.symbol as symbol,
+	 	ANY_VALUE(civicrm_currency.symbol) as symbol,
 	 	contrib.non_deductible_amount as non_deductible_amount ,
 	 	MONTH(contrib.receive_date) as mm_date,
 	 	DAY(contrib.receive_date) as dd_date, YEAR(contrib.receive_date) as yyyy_date,
 	 	$extended_contrib_table.$third_party_column_name as third_party,
 	 	contrib.currency,  contrib.source  as source,
 	 	".$tax_contrib_select_sql." val.label, ct.id as financial_type_id ,
-	     ct.name as contrib_type_name, ct.is_deductible, contrib.receive_date as recv_date
+	     ANY_VALUE(ct.name) as contrib_type_name, ct.is_deductible, contrib.receive_date as recv_date
 	     ";
 
 
 	 }else{
 	 	$having_tmp = "";
 	 	$gen_group_by  = " group by li.entity_id , li.financial_type_id ";
-	 	$gen_select_clause =  "contrib.id,
+	 	$gen_select_clause =  "ANY_VALUE(contrib.id),
 		  sum(li.line_total)    as li_total_amount ,
 		  sum(li.line_total) - ".$deduct_amt_sql." as li_non_deductible_amount,
-		  civicrm_currency.symbol as symbol,
+		  ANY_VALUE(civicrm_currency.symbol) as symbol,
 	          ".$deduct_amt_sql." as li_deductible_amount ,
 	          MONTH(contrib.receive_date) as mm_date,
 	          DAY(contrib.receive_date) as dd_date, YEAR(contrib.receive_date) as yyyy_date,
 	          $extended_contrib_table.$third_party_column_name as third_party,
 	          contrib.currency,  contrib.source  as source,
 	          ".$tax_contrib_select_sql." val.label, ct.id as financial_type_id ,
-	     ct.name as contrib_type_name, ct.is_deductible, contrib.receive_date as recv_date
+	     ANY_VALUE(ct.name) as contrib_type_name, ct.is_deductible, contrib.receive_date as recv_date
 	     ";
 	 }
 
 
 	 $sql_part_a = "SELECT contrib.contact_id, ".$gen_select_clause."
-	 FROM civicrm_contribution contrib join civicrm_line_item li ON li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'
+	 FROM civicrm_contribution contrib join civicrm_line_item li ON li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'
 	 join civicrm_financial_type ct ON li.financial_type_id = ct.id
-	 left join $extended_contrib_table on contrib.id = $extended_contrib_table.entity_id
+	 left join $extended_contrib_table on ANY_VALUE(contrib.id) = $extended_contrib_table.entity_id
 	 left join civicrm_currency on contrib.currency = civicrm_currency.name
 	 ".$tax_contrib_from_sql." ,
 	 civicrm_option_value val,
@@ -242,9 +242,9 @@ class TaxTools{
 	 $sql_part_a_event_income = "SELECT contrib.contact_id, ".$gen_select_clause."
 	 FROM civicrm_line_item li join civicrm_participant p ON li.entity_id = p.id AND li.entity_table = 'civicrm_participant'
 	 JOIN civicrm_participant_payment ep ON ifnull( p.registered_by_id, p.id) = ep.participant_id
-	 join civicrm_contribution contrib ON  ep.contribution_id = contrib.id
+	 join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id)
 	 join civicrm_financial_type ct ON li.financial_type_id = ct.id
-	 left join $extended_contrib_table on contrib.id = $extended_contrib_table.entity_id
+	 left join $extended_contrib_table on ANY_VALUE(contrib.id) = $extended_contrib_table.entity_id
 	 left join civicrm_currency on contrib.currency = civicrm_currency.name
 	 ".$tax_contrib_from_sql." ,
 	 civicrm_option_value val,
@@ -257,9 +257,9 @@ class TaxTools{
 
 
 	 $sql_third_party = "SELECT $extended_contrib_table.$third_party_column_name  as contact_id, ".$gen_select_clause."
-	 FROM civicrm_contribution contrib join civicrm_line_item li ON li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'
+	 FROM civicrm_contribution contrib join civicrm_line_item li ON li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'
 	 join civicrm_financial_type ct ON li.financial_type_id = ct.id
-	 join $extended_contrib_table ON contrib.id = $extended_contrib_table.entity_id
+	 join $extended_contrib_table ON ANY_VALUE(contrib.id) = $extended_contrib_table.entity_id
 	 left join civicrm_currency ON contrib.currency = civicrm_currency.name
 	 ".$tax_contrib_from_sql." ,
 	 civicrm_option_value val,
@@ -272,9 +272,9 @@ class TaxTools{
 	 $sql_third_party_event_income = "SELECT $extended_contrib_table.$third_party_column_name  as contact_id, ".$gen_select_clause."
 	 FROM civicrm_line_item li join civicrm_participant p ON li.entity_id = p.id AND li.entity_table = 'civicrm_participant'
 	 JOIN civicrm_participant_payment ep ON ifnull( p.registered_by_id, p.id) = ep.participant_id
-	 join civicrm_contribution contrib ON  ep.contribution_id = contrib.id
+	 join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id)
 	 join civicrm_financial_type ct ON li.financial_type_id = ct.id
-	 join $extended_contrib_table ON contrib.id = $extended_contrib_table.entity_id
+	 left join $extended_contrib_table on ANY_VALUE(contrib.id) = $extended_contrib_table.entity_id
 	 left join civicrm_currency ON contrib.currency = civicrm_currency.name
 	 ".$tax_contrib_from_sql." ,
 	 civicrm_option_value val,
@@ -284,7 +284,7 @@ class TaxTools{
 	 $gen_where_clause.$gen_group_by.$having_tmp;
 
 
-	 $tmp_first_contrib = " select contrib.id , contrib.contact_id ,contrib.source, contrib.currency, contrib.check_number,
+	 $tmp_first_contrib = " select ANY_VALUE(contrib.id) , contrib.contact_id ,contrib.source, contrib.currency, contrib.check_number,
 	 contrib.contribution_status_id,   contrib.contribution_recur_id , contrib.receive_date, contrib.total_amount, contrib.payment_instrument_id,
 	 contrib.is_test
 	 FROM civicrm_contribution contrib
@@ -311,7 +311,7 @@ class TaxTools{
 	 contrib.contact_id in ( $cid_list )
 	 and (  $extended_contrib_table.$third_party_column_name is NULL )
 	 AND contrib.contribution_recur_id IS NOT NULL ".
-	 $gen_where_clause. " Group by contrib.id, li.financial_type_id" ;
+	 $gen_where_clause. " Group by ANY_VALUE(contrib.id), li.financial_type_id" ;
 
 
 	 //print "<br><br>".$sql_recurring_income;

@@ -144,7 +144,7 @@ class CRM_Financialsummaries_Form_Search_contactfinancialexclusionsummary extend
 		$financial_type_sql = "";
 	
 		
-		$financial_type_sql = "Select ct.id, ct.name, fa.accounting_code from civicrm_financial_type ct
+		$financial_type_sql = "Select ct.id, ANY_VALUE(ct.name), fa.accounting_code from civicrm_financial_type ct
         	 	LEFT JOIN civicrm_entity_financial_account efa ON ct.id = efa.entity_id AND efa.entity_table = 'civicrm_financial_type'
         	 	LEFT JOIN civicrm_financial_account fa ON efa.financial_account_id = fa.id
 			    where ct.is_active = 1 ".$tmp_exlude_prepayment_sql." order by name";
@@ -374,7 +374,7 @@ class CRM_Financialsummaries_Form_Search_contactfinancialexclusionsummary extend
 	
 				//   print "<br><br> sql: ".$sql;
 				if ( $onlyIDs ) {
-					$outer_select =  "contact_a.id as contact_id";
+					$outer_select =  "ANY_VALUE(contact_a.id) as contact_id";
 				}else{
 					$outer_select = "contact_b.* , contact_a.sort_name, address.street_address, address.city, state.abbreviation as state,  address.postal_code, country.name as country, email.email, phone.phone";
 	
@@ -453,7 +453,7 @@ class CRM_Financialsummaries_Form_Search_contactfinancialexclusionsummary extend
 		 
 		// Deal with households
 	
-		$tmp_contact_sql = "rel.contact_id_b as household_id , ifnull( rel.contact_id_b, contact_a.id ) as contact_id, contact_a.id as underlying_contact_id  ";
+		$tmp_contact_sql = "ANY_VALUE(rel.contact_id_b) as household_id , ifnull( ANY_VALUE(rel.contact_id_b), ANY_VALUE(contact_a.id) ) as contact_id, contact_a.id as underlying_contact_id  ";
 	
 	// TODO: Look up relationship type IDs.
 		$tmp_rel_type_ids = "7, 6";   // Household member of , Head of Household

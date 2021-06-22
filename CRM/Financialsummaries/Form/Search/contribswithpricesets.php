@@ -146,13 +146,12 @@ AND    p.entity_id    = e.id
   	/////
   
   	$tmp_ps_lineitems = array();
-  	$sql = "SELECT li.id as lineitem_id , li.label as lineitem_label ,e.id as event_id ,  e.title as event_title, e.start_date as event_start_date
-		FROM civicrm_line_item li LEFT JOIN civicrm_participant p on li.entity_id = p.id
+$sql = "SELECT ANY_VALUE(li.id) as lineitem_id , ANY_VALUE(li.label) as lineitem_label ,e.id as event_id ,  e.title as event_title, e.start_date as event_start_date		FROM civicrm_line_item li LEFT JOIN civicrm_participant p on li.entity_id = p.id
 		LEFT JOIN civicrm_event e ON p.event_id = e.id
 		WHERE entity_table = 'civicrm_participant'
 		AND p.is_test  <> 1
-		group by e.id, li.label
-		ORDER BY e.start_date desc, li.label ";
+		group by e.id, ANY_VALUE(li.label)
+		ORDER BY e.start_date desc, ANY_VALUE(li.label) ";
   
   	$params = array( );
   	$dao = CRM_Core_DAO::executeQuery( $sql,  $params );
@@ -575,14 +574,14 @@ AND    p.entity_id    = e.id
   	$li_where = self::getListItemWhere();
   
   	$tmp_sql =   "SELECT distinct(pf.id) as priceset_field_id, pf.name as priceset_field_name, pf.label as priceset_field_label,
-    	                      li.label as line_item_name, price_field_value_id as price_field_value_id
+    	                      ANY_VALUE(li.label) as line_item_name, price_field_value_id as price_field_value_id
          			 FROM civicrm_participant p
 				 LEFT JOIN civicrm_line_item li ON p.id = li.entity_id
 				 AND li.entity_table = 'civicrm_participant'
 				 LEFT JOIN civicrm_event e ON p.event_id = e.id
 				 LEFT JOIN civicrm_price_field pf ON li.price_field_id = pf.id  ".$li_where.
   				 "GROUP BY pf.id, price_field_value_id
-				  ORDER BY pf.id , li.label";
+				  ORDER BY pf.id , ANY_VALUE(li.label)";
   
   
   	//print "<br><br>Price set sql: ".$tmp_sql;
@@ -803,7 +802,7 @@ AND    p.entity_id    = e.id
   		$tmp_select =	" count( distinct p.id  ) as rec_count,
 sum(li.qty) as total_qty, min(li.unit_price) as min_unit_price, max(li.unit_price) as max_unit_price, avg(li.unit_price) as avg_unit_price,
 sum(li.line_total) as total_amount ,
-sum(li.participant_count) as actual_participant_count, li.label, e.currency as currency,
+sum(li.participant_count) as actual_participant_count, ANY_VALUE(li.label), e.currency as currency,
  e.title as event_title, e.start_date as event_start_date
  ";
   
@@ -853,7 +852,7 @@ sum(li.participant_count) as actual_participant_count, li.label, e.currency as c
   				$grand_totals = true;
   				$totalSelect = " count( p.id  ) as rec_count,  pf.name as priceset_field_name, pf.label as priceset_field_label,
   sum(li.qty) as total_qty  , li.unit_price,  sum( li.line_total) as total_amount  ,
-li.participant_count, if( pf.label <> li.label,  concat(pf.label, ' - ', li.label), li.label) as label ,e.currency as currency,
+li.participant_count, if( pf.label <> ANY_VALUE(li.label),  concat(pf.label, ' - ', ANY_VALUE(li.label)), ANY_VALUE(li.label)) as label ,e.currency as currency,
  e.title as event_title, e.start_date as event_start_date
  ";
   
@@ -884,23 +883,23 @@ LEFT JOIN civicrm_price_field pf ON li.price_field_id = pf.id ";
   				//print "<br><br>summary sql:  ".$tmp_full_sql;
   				 
   			}else if($this->_layoutChoice == 'detail'){
-  				$selectClause = " contact_a.id            as contact_id  , p.id as participant_id, '' as participant_link,
+  				$selectClause = " ANY_VALUE(contact_a.id) as contact_id  , p.id as participant_id, '' as participant_link,
 contact_a.sort_name   as display_name, contact_a.first_name, contact_a.last_name,
-civicrm_email.email as email, civicrm_phone.phone as phone, civicrm_address.street_address as street_address,
-civicrm_address.supplemental_address_1 as supplemental_address_1, civicrm_address.city as city ,civicrm_address.postal_code as postal_code,
-civicrm_state_province.abbreviation as state, p.registered_by_id, contact_b.sort_name as registered_by_name,
-li.id as line_item_id,
-li.qty, li.unit_price, li.line_total as line_total, li.participant_count, if( pf.label <> li.label,  concat(pf.label, ' - ', li.label), li.label) as label,
+ANY_VALUE(civicrm_email.email) as email, ANY_VALUE(civicrm_phone.phone) as phone, ANY_VALUE(civicrm_address.street_address) as street_address,
+ANY_VALUE(civicrm_address.supplemental_address_1) as supplemental_address_1, ANY_VALUE(civicrm_address.city) as city ,ANY_VALUE(civicrm_address.postal_code) as postal_code,
+ANY_VALUE(civicrm_state_province.abbreviation) as state, p.registered_by_id, contact_b.sort_name as registered_by_name,
+ANY_VALUE(li.id) as line_item_id,
+li.qty, li.unit_price, li.line_total as line_total, li.participant_count, if( pf.label <> ANY_VALUE(li.label),  concat(pf.label, ' - ', ANY_VALUE(li.label)), ANY_VALUE(li.label)) as label,
 e.currency as currency, ".$tmp_age_calc."
 p.register_date, e.title as event_title, e.start_date as event_start_date,
-mt.name as membership_type, ms.label as membership_status,
+ANY_VALUE(mt.name) as membership_type, ANY_VALUE(ms.label) as membership_status,
 pset.id as price_set_id , pset.title as price_set_title,
-main_contrib.id as contrib_id,
-main_contrib.contact_id as contrib_contact_id ,
-date( main_contrib.receive_date ) as contrib_date,
-contrib_contact.sort_name as contrib_sort_name,
+ANY_VALUE(main_contrib.id) as contrib_id,
+ANY_VALUE(main_contrib.contact_id) as contrib_contact_id ,
+date( ANY_VALUE(main_contrib.receive_date) ) as contrib_date,
+ANY_VALUE(contrib_contact.sort_name) as contrib_sort_name,
 li.entity_table as entity_type,
-main_contrib.source as contrib_source,
+ANY_VALUE(main_contrib.source) as contrib_source,
 fin_type.name as financial_type_name
  ";
   
@@ -952,7 +951,7 @@ left join civicrm_address on contact_a.id = civicrm_address.contact_id AND (civi
 left join civicrm_state_province on civicrm_address.state_province_id = civicrm_state_province.id AND (civicrm_state_province.abbreviation like '%' or civicrm_state_province.abbreviation is null)
 LEFT JOIN civicrm_price_field pf ON li.price_field_id = pf.id
 LEFT JOIN civicrm_price_set pset ON pf.price_set_id = pset.id
-left join civicrm_contribution contrib ON contrib.id =  li.entity_id AND li.entity_table = 'civicrm_contribution'
+left join civicrm_contribution contrib ON ANY_VALUE(contrib.id) =  li.entity_id AND li.entity_table = 'civicrm_contribution'
 left join civicrm_participant_payment pp ON ifnull( p.registered_by_id, p.id) = pp.participant_id
 LEFT JOIN civicrm_contribution p_contrib ON pp.contribution_id = p_contrib.id
 LEFT JOIN civicrm_contribution main_contrib ON main_contrib.id = CASE li.entity_table WHEN  'civicrm_contribution' THEN  li.entity_id WHEN 'civicrm_participant' THEN p_contrib.id ELSE  '' END
@@ -1202,7 +1201,7 @@ sum(t1.actual_participant_count) as actual_participant_count, t1.label, t1.curre
   	$totalSelect = $this->select('sum_only');
   	$from  = $this->from();
   	$where = $this->where(false, true);
-  	$group_by = "e.currency, li.label , e.title, e.start_date";
+  	$group_by = "e.currency, li.label(li.label) , e.title, e.start_date";
   	 
   	$sql = "SELECT  $totalSelect
   	$from

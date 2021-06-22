@@ -519,7 +519,7 @@ $config = CRM_Core_Config::singleton( );
         // SELECT clause must include contact_id as an alias for civicrm_contact.id
         if ( $onlyIDs ) {
                  if($layout_choice == 'detail'){
-        	$select = "contact_a.id as contact_id";
+        	$select = "ANY_VALUE(contact_a.id) as contact_id";
                   }
         
         }else{
@@ -553,14 +553,14 @@ $config = CRM_Core_Config::singleton( );
      			 $total_where = " AND $tmp_total > 0 " ; 
      			}
             
-             $select  = " contact_a.id as contact_id,
+             $select  = " ANY_VALUE(contact_a.id) as contact_id,
                       contact_a.sort_name as sort_name,
                       if( contact_a.is_deceased = 0 , '', 'deceased') as is_deceased,  
-                      phone.phone as phone, email.email as email, address.street_address as street_address,
-                       address.city as city, 
-                      state_province.abbreviation as state, address.postal_code as zip, 
-                      loc.display_name as location_type_name,  
-                      country.name as country, format( ceil( ".$tmp_total." ), 0)  as total_amount, 
+                      ANY_VALUE(phone.phone) as phone, ANY_VALUE(email.email) as email, ANY_VALUE(address.street_address) as street_address,
+                       ANY_VALUE(address.city) as city,
+                      ANY_VALUE(state_province.abbreviation) as state, ANY_VALUE(address.postal_code) as zip,
+                      ANY_VALUE(loc.display_name) as location_type_name,
+                      ANY_VALUE(country.name) as country, format( ceil( ".$tmp_total." ), 0)  as total_amount,
                        count( distinct participant.id ) as participation_count,
                       ".$alumni_fields." 
                       group_concat( distinct rt.label_a_b ) as relationship_names ,  group_concat( distinct mt.name) as membership_names
@@ -780,10 +780,10 @@ $config = CRM_Core_Config::singleton( );
 	                             $tmp_gl_name = $this->getGivingLevelField( "ifnull( ceil(sum(contrib.total_amount)), 0 ) "); 
 	                              
 	                           $tmp_giving_level = " LEFT JOIN ( 
-	                               select contrib.contact_id , ifnull( ceil(sum(contrib.total_amount)), 0 )  as givinglevel_amount ,
+	                               select ANY_VALUE(contrib.contact_id) , ifnull( ceil(sum(contrib.total_amount)), 0 )  as givinglevel_amount ,
 	                               ".$tmp_gl_name." as givinglevel_name 
 	                               FROM 
-	                               civicrm_contribution contrib LEFT join civicrm_line_item li ON contrib.id = li.entity_id AND li.entity_table = 'civicrm_contribution'
+	                               civicrm_contribution contrib LEFT join civicrm_line_item li ON ANY_VALUE(contrib.id) = li.entity_id AND li.entity_table = 'civicrm_contribution'
 	                               LEFT join civicrm_financial_type ft ON li.financial_type_id = ft.id 
 	                               WHERE  
 	                                ft.name = 'Annual Giving Contribution' 
@@ -809,7 +809,7 @@ $config = CRM_Core_Config::singleton( );
  
                   }else if( $layout_choice == 'classyear'){
                      $tmp_group_by = " group by mha_class_year ";
-                      $select_inner = " programinfo.class_of__mha__44 as mha_class_year , sum(li.line_total) as sum_line_total ";       
+                      $select_inner = " ANY_VALUE(contact_a.id) as contact_id , sum(li.line_total) as sum_line_total ";    
 
                      $select_for_union = "  mha_class_year , sum( sum_line_total) as sum_line_total "; 
                      $groupby_for_union = " group by mha_class_year ";
@@ -899,7 +899,7 @@ $config = CRM_Core_Config::singleton( );
                                                      civicrm_contact contact_a ".$alumni_sql."
                                                      Left join civicrm_contribution contrib ON contact_a.id = contrib.contact_id AND contrib.is_test <> 1
                                                          AND contrib.contribution_status_id = 1 ".$year_filter."
-                                                     JOIN civicrm_line_item li ON li.entity_id = contrib.id 
+                                                     JOIN civicrm_line_item li ON li.entity_id = ANY_VALUE(contrib.id)
                                                      AND li.entity_table = 'civicrm_contribution' ".$financial_filter. 
                                                      $tmp_giving_level." WHERE ".$tmp_where."
                                                      ".$tmp_group_by ; 
@@ -909,7 +909,7 @@ $config = CRM_Core_Config::singleton( );
 	                                             civicrm_line_item li JOIN civicrm_participant part ON li.entity_id = part.id 
                                                      AND li.entity_table =   'civicrm_participant' ".$financial_filter."
 	                                             JOIN civicrm_participant_payment ep ON ifnull( part.registered_by_id, part.id) = ep.participant_id
-				                     join civicrm_contribution contrib ON  ep.contribution_id = contrib.id AND contrib.is_test <> 1
+				                     join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id) AND contrib.is_test <> 1
                                                          AND contrib.contribution_status_id = 1 ".$year_filter."
                                                      JOIN civicrm_contact contact_a ON contact_a.id = contrib.contact_id ".$alumni_sql." 
                                                      ".$tmp_giving_level." WHERE ".$tmp_where."
@@ -1176,7 +1176,7 @@ $config = CRM_Core_Config::singleton( );
              //$year_filter_tmp = " year(contrib.receive_date) IN ( ".$years_list." )"; 
              // print "<br> old style year filter: ".$year_filter_tmp;
             
-             $clauses[] = " (  contact_a.id IN ( SELECT distinct contrib.contact_id as contact_id 
+             $clauses[] = " (  contact_a.id IN ( SELECT distinct ANY_VALUE(contrib.contact_id) as contact_id
 	  							FROM civicrm_contribution contrib WHERE 
 	  							(  ".$year_filter_tmp."  )
 	  							AND contrib.is_test <> 1
@@ -1209,7 +1209,7 @@ $years_list = implode( ", " , $contrib_year);
 
                  $clauses[] = " (  contact_a.id IN ( select distinct contrib.contact_id   
                                FROM 
-                               civicrm_contribution contrib LEFT join civicrm_line_item li ON contrib.id = li.entity_id AND li.entity_table = 'civicrm_contribution'
+                               civicrm_contribution contrib LEFT join civicrm_line_item li ON ANY_VALUE(contrib.id) = li.entity_id AND li.entity_table = 'civicrm_contribution'
                                LEFT join civicrm_financial_type ft ON li.financial_type_id = ft.id 
                                WHERE  
                                 ft.name = 'Annual Giving Contribution' 
@@ -1257,13 +1257,13 @@ $years_list = implode( ", " , $contrib_year);
        if( count( $financial_type) > 0  ) {
              $fin_types_list = implode( ", " ,  $financial_type);
              $clauses[] = " (  contact_a.id IN ( SELECT DISTINCT contrib.contact_id as contact_id FROM 
-                               civicrm_line_item li join civicrm_contribution contrib ON li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'  
+                               civicrm_line_item li join civicrm_contribution contrib ON li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'
                                WHERE li.financial_type_id IN (".$fin_types_list.") )
                               OR
                                contact_a.id IN ( SELECT DISTINCT contrib.contact_id as contact_id FROM
                                civicrm_line_item li JOIN civicrm_participant part ON li.entity_id = part.id AND li.entity_table =  'civicrm_participant' 
 	                        JOIN civicrm_participant_payment ep ON ifnull( part.registered_by_id, part.id) = ep.participant_id
-				join civicrm_contribution contrib ON  ep.contribution_id = contrib.id  
+				join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id)
                                WHERE li.financial_type_id IN (".$fin_types_list.") )      ) 
                                  ";
 
@@ -1280,13 +1280,13 @@ $years_list = implode( ", " , $contrib_year);
         	//  $clauses[] = "  li.financial_type_id IN (".$tmp_ids.")  ";
 
                   $clauses[] = " (  contact_a.id IN ( SELECT DISTINCT contrib.contact_id as contact_id FROM 
-                               civicrm_line_item li join civicrm_contribution contrib ON li.entity_id = contrib.id AND li.entity_table = 'civicrm_contribution'  
+                               civicrm_line_item li join civicrm_contribution contrib ON li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution'
                                WHERE li.financial_type_id IN (".$tmp_ids.") )
                               OR
                                contact_a.id IN ( SELECT DISTINCT contrib.contact_id as contact_id FROM
                                civicrm_line_item li JOIN civicrm_participant part ON li.entity_id = part.id AND li.entity_table =  'civicrm_participant' 
 	                        JOIN civicrm_participant_payment ep ON ifnull( part.registered_by_id, part.id) = ep.participant_id
-				join civicrm_contribution contrib ON  ep.contribution_id = contrib.id  
+				join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id)
                                WHERE li.financial_type_id IN (".$tmp_ids.") )      ) 
                                  ";
         	
