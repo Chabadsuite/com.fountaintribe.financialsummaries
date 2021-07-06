@@ -192,7 +192,7 @@ class TaxTools{
 
 	 	$gen_group_by  = " group by li.entity_id , li.financial_type_id ";
 
-	 	$gen_select_clause =  "ANY_VALUE(contrib.id),
+	 	$gen_select_clause =  "ANY_VALUE(contrib.id) as id,
 	 	contrib.total_amount   as total_amount ,
 	 	contrib.total_amount - contrib.non_deductible_amount as deductible_amount,
 	 	ANY_VALUE(civicrm_currency.symbol) as symbol,
@@ -209,7 +209,7 @@ class TaxTools{
 	 }else{
 	 	$having_tmp = "";
 	 	$gen_group_by  = " group by li.entity_id , li.financial_type_id ";
-	 	$gen_select_clause =  "ANY_VALUE(contrib.id),
+	 	$gen_select_clause =  "ANY_VALUE(contrib.id) as id,
 		  sum(li.line_total)    as li_total_amount ,
 		  sum(li.line_total) - ".$deduct_amt_sql." as li_non_deductible_amount,
 		  ANY_VALUE(civicrm_currency.symbol) as symbol,
@@ -371,7 +371,7 @@ class TaxTools{
 	 
 
 	function process_tax_year( &$values, &$contactIDs , &$ct_prefix_id,  &$token_long ,  &$only_tax_deductable_parm,
-			&$start_date, &$end_date, &$format_parm, &$font_size, $only_show_totals = false ){
+			&$start_date, &$end_date, &$format_parm, $only_show_totals = false ){
 				 
 				$need_subtotals = false;
 				//print "<Br> format parm: ".$format_parm;

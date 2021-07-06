@@ -458,12 +458,12 @@ t1.financial_type_id as contrib_type_id ,   t1.accounting_code as accounting_cod
 // include COMPLETED automated recurring contributions IF recurring subscription is cancelled or open-ended.  
 
 
-$tmp_first_contrib = " select contrib.id , contrib.contact_id ,contrib.source, contrib.currency, 
-   contrib.contribution_status_id,   contrib.contribution_recur_id , contrib.receive_date, contrib.total_amount, contrib.is_test
+$tmp_first_contrib = " select ANY_VALUE(contrib.id) as id, ANY_VALUE(contrib.contact_id) as contact_id ,ANY_VALUE(contrib.source) as source, ANY_VALUE(contrib.currency) as currency, 
+   ANY_VALUE(contrib.contribution_status_id) as contribution_status_id,   contrib.contribution_recur_id, contrib.receive_date, ANY_VALUE(contrib.total_amount) as total_amount, ANY_VALUE(contrib.is_test) as is_test
        FROM civicrm_contribution contrib 
        WHERE contrib.contribution_recur_id is NOT NULL
        AND (contrib.contribution_status_id = 1 OR contrib.contribution_status_id = 2 ) ".$tmp_extra_cid."      
-       GROUP BY contrib.contribution_recur_id, contrib.id
+       GROUP BY contrib.contribution_recur_id, contrib.receive_date
        HAVING contrib.receive_date = min(contrib.receive_date) ";
        
        
@@ -514,7 +514,7 @@ month( c.receive_date ) as mm_date, day(c.receive_date ) as dd_date , year(c.rec
 ct.id as contrib_type_id,  fa.accounting_code as accounting_code , 
 '' as line_item_recur_amount , '' as recur_crm_id , '' as processor_id , '' as payment_processor_type, 
 CASE WHEN ct.name NOT LIKE 'adjustment-%' AND ct.name NOT LIKE '%---adjustment-%' THEN  if( ANY_VALUE(valA.label) = 'Completed' , li.line_total,  0) ELSE 0 END  as received, CASE WHEN ct.name NOT LIKE 'adjustment-%' AND ct.name NOT LIKE '%---adjustment-%' THEN 0 ELSE if( ANY_VALUE(valA.label) = 'Completed' , li.line_total,  0)  END as adjusted ,  if( ANY_VALUE(valA.label) = 'Completed' , 0,  li.line_total) as balance,
-if( valA.label <>  'Completed'  , sum(li.line_total),  0) as amt_due
+if( ANY_VALUE(valA.label) <>  'Completed'  , sum(li.line_total),  0) as amt_due
 from   civicrm_line_item li JOIN civicrm_contribution c ON   li.entity_id = c.id AND li.entity_table = 'civicrm_contribution'        
  ".$tmp_from_sql_contrib."
  left join civicrm_pledge_payment as pp on c.id = pp.contribution_id
@@ -554,7 +554,7 @@ month( ifnull( extra.".$original_date_sql_name." , c.receive_date) ) as mm_date,
 ct.id as contrib_type_id,  fa.accounting_code as accounting_code ,
 '' as line_item_recur_amount ,  '' as recur_crm_id , '' as processor_id , '' as	payment_processor_type, 
 if( ANY_VALUE(valA.label) = 'Completed' , li.line_total,  0) as received, 0 as adjusted ,  if( ANY_VALUE(valA.label) = 'Completed' , 0,  li.line_total) as balance,
-if( valA.label <>  'Completed'  , sum(li.line_total),  0) as amt_due
+if( ANY_VALUE(valA.label) <>  'Completed'  , sum(li.line_total),  0) as amt_due
 from civicrm_line_item li JOIN civicrm_contribution as c ON li.entity_id = c.id AND li.entity_table = 'civicrm_contribution' 
  ".$tmp_from_sql_contrib."
  left join civicrm_pledge_payment as pp on c.id = pp.contribution_id
@@ -578,7 +578,7 @@ AND grpA.name = 'contribution_status'
 AND (
        (ANY_VALUE(valA.label)  = 'Pending' || ANY_VALUE(valA.label)  = 'In Progress' || ANY_VALUE(valA.label)  = 'Overdue')
        OR
-       (valA.label  = 'Completed' ) 
+       (ANY_VALUE(valA.label)  = 'Completed') 
      )
 ".$tmp_exclude_prepays_sql."
 and ( ct.name NOT LIKE 'adjustment-%' AND ct.name NOT LIKE '%---adjustment-%' ) ".$where_clause_contrib_type_ids.$tmp_contrib_where.
@@ -614,12 +614,12 @@ WHERE recur.contribution_status_id = valA.value AND valA.option_group_id = grpA.
 
 
   
-  $tmp_first_contrib = " select contrib.id , contrib.contact_id ,contrib.source, contrib.currency, 
-   contrib.contribution_status_id,   contrib.contribution_recur_id , contrib.receive_date
+  $tmp_first_contrib = " select ANY_VALUE(contrib.id) as id , ANY_VALUE(contrib.contact_id) as contact_id, ANY_VALUE(contrib.source) as source, ANY_VALUE(contrib.currency) as currency, 
+   ANY_VALUE(contrib.contribution_status_id) as contribution_status_id,   contrib.contribution_recur_id , contrib.receive_date
        FROM civicrm_contribution contrib 
        WHERE contrib.contribution_recur_id is NOT NULL
        AND (contrib.contribution_status_id = 1 OR contrib.contribution_status_id = 2 ) ".$tmp_extra_cid."      
-       GROUP BY contrib.contribution_recur_id 
+       GROUP BY contrib.contribution_recur_id, contrib.receive_date
        HAVING contrib.receive_date = min(contrib.receive_date) ";
        
        
@@ -646,13 +646,13 @@ WHERE recur.contribution_status_id = valA.value AND valA.option_group_id = grpA.
 
   $recurring_sql = "SELECT t1.* , ifnull(t2.received, 0 )  as received , 0 as adjusted , (t1.total_amount - ifnull(t2.received, 0 )) as balance,
   null as amt_due  FROM ( 
-  SELECT  ANY_VALUE(li.id) as id, ".$tmp_contact_sql_contrib." ANY_VALUE(ct.name) as contrib_type, c.source as source, (li.line_total * recur.installments ) as total_amount,
+  SELECT  ANY_VALUE(li.id) as id, ".$tmp_contact_sql_contrib." ANY_VALUE(ct.name) as contrib_type, c.source as source, (li.line_total * ANY_VALUE(recur.installments) ) as total_amount,
 month( c.receive_date ) as mm_date, day(c.receive_date ) as dd_date , year(c.receive_date ) as yyyy_date, c.receive_date as rec_date,
-'recurring' as entity_type, c.contribution_status_id as status, valA.label as status_label,
-recur.amount as recur_amount, recur.installments as recur_installments,  li.id as line_item_id, 
+'recurring' as entity_type, c.contribution_status_id as status, ANY_VALUE(valA.label) as status_label,
+ANY_VALUE(recur.amount) as recur_amount, ANY_VALUE(recur.installments) as recur_installments,  li.id as line_item_id, 
 ".$tax_recur_select_sql." c.currency as currency,
 ct.id as contrib_type_id , fa.accounting_code as accounting_code,
- li.line_total  as line_item_recur_amount,  recur.id as recur_crm_id,  recur.processor_id , ppt.name as payment_processor_type
+ li.line_total  as line_item_recur_amount,  ANY_VALUE(recur.id) as recur_crm_id,  ANY_VALUE(recur.processor_id) as processor_id, ANY_VALUE(ppt.name) as payment_processor_type
 FROM ( ".$tmp_first_contrib."
     ) as c JOIN civicrm_line_item li ON li.entity_id = c.id AND li.entity_table = 'civicrm_contribution' 
    AND c.contribution_recur_id is not null
@@ -678,7 +678,7 @@ AND (
      )
 AND recur.installments <> 0 AND recur.installments is not null ".$where_clause_contrib_type_ids.$tmp_recur_where.
 " AND recur.is_test = 0 ".$tmp_where_grps_mems."
-GROUP BY li.id, c.id  ) as t1 LEFT JOIN (
+GROUP BY li.id, c.id, c.receive_date  ) as t1 LEFT JOIN (
 	".$sql_for_recur_received."   
      ) as t2 on t1.id = t2.id";
      
@@ -688,7 +688,7 @@ GROUP BY li.id, c.id  ) as t1 LEFT JOIN (
    //  if(strlen($original_date_sql_name) > 0 && strlen($extended_contrib_table) > 0 ){
        if(false ){
      	 $recurring_sql = "SELECT t1.* , ifnull(t2.received, 0 )  as received , 0 as adjusted , (t1.total_amount - ifnull(t2.received, 0 )) as balance FROM ( 
-  SELECT recur.id as id, ".$tmp_contact_sql_contrib." ANY_VALUE(ct.name) as contrib_type, MAX(c.source) as source, (recur.amount * recur.installments ) as total_amount,
+  SELECT recur.id as id, ".$tmp_contact_sql_contrib." ANY_VALUE(ct.name) as contrib_type, MAX(c.source) as source, (recur.amount * ANY_VALUE(recur.installments) ) as total_amount,
 month( ifnull( min(extra.".$original_date_sql_name." ), min(c.receive_date)) ) as mm_date, day(ifnull( min(extra.".$original_date_sql_name.") , min(c.receive_date)) ) as dd_date , 
 year(ifnull( min(extra.".$original_date_sql_name.") , min(c.receive_date) )) as yyyy_date, ifnull( min(extra.".$original_date_sql_name.") , min(c.receive_date)) as rec_date,
 'recurring' as entity_type, c.contribution_status_id as status, ANY_VALUE(valA.label) as status_label,
@@ -832,7 +832,7 @@ and ( ct.name NOT LIKE 'adjustment-%' AND ct.name NOT LIKE '%---adjustment-%' ) 
     	$financial_category_field_sql = $tmpFinancialCategory->getFinancialCategoryFieldAsSQL();
     	
     	
-    	$line_item_select = " ANY_VALUE(f1.line_item_id) , ";
+    	$line_item_select = " ANY_VALUE(f1.line_item_id) as line_item_id , ";
     	
  
 
@@ -846,13 +846,13 @@ and ( ct.name NOT LIKE 'adjustment-%' AND ct.name NOT LIKE '%---adjustment-%' ) 
 			$tmp_contact = "'' as contact_id , '' as sort_name";
 	         }
 	
-		$select_str  =  "'' as id , ".$tmp_contact." , ANY_VALUE(f1.contrib_type), ANY_VALUE(f1.accounting_code),  '' as source, sum(f1.total_amount) as total_amount,
-		ANY_VALUE(f1.mm_date), ANY_VALUE(f1.dd_date), ANY_VALUE(f1.yyyy_date), ANY_VALUE(f1.rec_date), date_format(ANY_VALUE(f1.rec_date), '%Y-%m-%d' ) as date_for_sort,
+		$select_str  =  "'' as id , ".$tmp_contact." , ANY_VALUE(f1.contrib_type) as contrib_type, ANY_VALUE(f1.accounting_code) as accounting_code,  '' as source, sum(f1.total_amount) as total_amount,
+		ANY_VALUE(f1.mm_date) as mm_date, ANY_VALUE(f1.dd_date) as dd_date, ANY_VALUE(f1.yyyy_date) as yyyy_date, ANY_VALUE(f1.rec_date) as rec_date, date_format(ANY_VALUE(f1.rec_date), '%Y-%m-%d' ) as date_for_sort,
 		 '' as entity_type, '' as status,  '' as status_label,  '' as recur_amount, '' as recur_installments, ".$line_item_select."
-		  f1.currency,ANY_VALUE(f1.contrib_type_id), ANY_VALUE(f1.line_item_recur_amount), ANY_VALUE(f1.recur_crm_id),
-		 ANY_VALUE(f1.payment_processor_type), ".$main_tax_select_sql."
+		  f1.currency,ANY_VALUE(f1.contrib_type_id) as contrib_type_id, ANY_VALUE(f1.line_item_recur_amount) as line_item_recur_amount, ANY_VALUE(f1.recur_crm_id) as recur_crm_id,
+		 ANY_VALUE(f1.payment_processor_type) as payment_processor_type, ".$main_tax_select_sql."
 		sum(f1.received) as received ,  sum(f1.adjusted) as adjusted , sum(f1.balance) as balance , sum(f1.amt_due) as amt_due, 
-		 ".$financial_category_field_sql."   ANY_VALUE(civicrm_currency.symbol), concat(ANY_VALUE(f1.mm_date) , '/' , ANY_VALUE(f1.dd_date) , '/' , ANY_VALUE(f1.yyyy_date) ) as formatted_date, count(*) as rec_count";
+		 ".$financial_category_field_sql."   ANY_VALUE(civicrm_currency.symbol) as symbol, concat(ANY_VALUE(f1.mm_date) , '/' , ANY_VALUE(f1.dd_date) , '/' , ANY_VALUE(f1.yyyy_date) ) as formatted_date, count(*) as rec_count";
 		
 		if( $columns_needed == "contact_id" ){
 			$select_str  = " f1.contact_id ";
@@ -861,12 +861,12 @@ and ( ct.name NOT LIKE 'adjustment-%' AND ct.name NOT LIKE '%---adjustment-%' ) 
 		$sql_groupby_clause = " Group By ".$extra_groupby_clause;
 	}else{
 		$select_str  =  "f1.id, f1.contact_id, f1.contrib_type, f1.accounting_code,  f1.source, f1.total_amount, 
-		ANY_VALUE(f1.mm_date), ANY_VALUE(f1.dd_date), f1.yyyy_date, ANY_VALUE(f1.rec_date), date_format(ANY_VALUE(f1.rec_date), '%Y-%m-%d' ) as date_for_sort,
-		f1.entity_type, f1.status, f1.status_label, f1.recur_amount, f1.recur_installments, ".$line_item_select." 
+		ANY_VALUE(f1.mm_date) as mm_date, ANY_VALUE(f1.dd_date) as dd_date, f1.yyyy_date, ANY_VALUE(f1.rec_date) as rec_date, date_format(ANY_VALUE(f1.rec_date), '%Y-%m-%d' ) as date_for_sort,
+		f1.entity_type, f1.status, f1.status_label, f1.recur_amount, f1.recur_installments, ".$line_item_select."
 		 f1.currency,f1.contrib_type_id, f1.line_item_recur_amount, f1.recur_crm_id, 
 		f1.payment_processor_type, ".$main_tax_select_sql."
 		f1.received,  f1.adjusted, f1.balance , f1.amt_due, 
-		c1.sort_name, ".$financial_category_field_sql."  ANY_VALUE(civicrm_currency.symbol), concat(ANY_VALUE(f1.mm_date) , '/' , ANY_VALUE(f1.dd_date) , '/' , ANY_VALUE(f1.yyyy_date) ) as formatted_date";
+		c1.sort_name, ".$financial_category_field_sql."  ANY_VALUE(civicrm_currency.symbol) as symbol, concat(ANY_VALUE(f1.mm_date) , '/' , ANY_VALUE(f1.dd_date) , '/' , ANY_VALUE(f1.yyyy_date) ) as formatted_date";
 		
 		if( $columns_needed == "contact_id" ){
 			$select_str  = " f1.contact_id ";

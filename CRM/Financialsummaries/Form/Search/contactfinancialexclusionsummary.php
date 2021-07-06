@@ -144,7 +144,7 @@ class CRM_Financialsummaries_Form_Search_contactfinancialexclusionsummary extend
 		$financial_type_sql = "";
 	
 		
-		$financial_type_sql = "Select ct.id, ANY_VALUE(ct.name), fa.accounting_code from civicrm_financial_type ct
+		$financial_type_sql = "Select ct.id, ANY_VALUE(ct.name) as name, fa.accounting_code from civicrm_financial_type ct
         	 	LEFT JOIN civicrm_entity_financial_account efa ON ct.id = efa.entity_id AND efa.entity_table = 'civicrm_financial_type'
         	 	LEFT JOIN civicrm_financial_account fa ON efa.financial_account_id = fa.id
 			    where ct.is_active = 1 ".$tmp_exlude_prepayment_sql." order by name";
@@ -376,7 +376,7 @@ class CRM_Financialsummaries_Form_Search_contactfinancialexclusionsummary extend
 				if ( $onlyIDs ) {
 					$outer_select =  "ANY_VALUE(contact_a.id) as contact_id";
 				}else{
-					$outer_select = "contact_b.* , contact_a.sort_name, address.street_address, address.city, state.abbreviation as state,  address.postal_code, country.name as country, email.email, phone.phone";
+					$outer_select = "contact_b.* , contact_a.sort_name, ANY_VALUE(address.street_address) as street_address, ANY_VALUE(address.city) as city, ANY_VALUE(state.abbreviation) as state,  ANY_VALUE(address.postal_code) as postal_code, ANY_VALUE(country.name) as country, ANY_VALUE(email.email) as email, ANY_VALUE(phone.phone) as phone";
 	
 	
 				}
@@ -406,7 +406,7 @@ class CRM_Financialsummaries_Form_Search_contactfinancialexclusionsummary extend
 				WHERE contact_b.contact_id NOT IN ( ".$sql_inner_financials." ) ".$acl_where_clause. "
 	AND contact_a.contact_type = 'Household'
 	AND contact_a.is_deleted <> 1
-	GROUP BY contact_id ";
+	GROUP BY contact_id, contact_b.household_id, contact_b.underlying_contact_id";
 	
 	
 	

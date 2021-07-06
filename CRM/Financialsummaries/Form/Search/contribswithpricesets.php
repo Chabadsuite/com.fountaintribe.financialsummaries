@@ -146,7 +146,8 @@ AND    p.entity_id    = e.id
   	/////
   
   	$tmp_ps_lineitems = array();
-$sql = "SELECT ANY_VALUE(li.id) as lineitem_id , ANY_VALUE(li.label) as lineitem_label ,e.id as event_id ,  e.title as event_title, e.start_date as event_start_date		FROM civicrm_line_item li LEFT JOIN civicrm_participant p on li.entity_id = p.id
+    $sql = "SELECT ANY_VALUE(li.id) as lineitem_id , ANY_VALUE(li.label) as lineitem_label ,e.id as event_id ,  e.title as event_title, e.start_date as event_start_date
+    FROM civicrm_line_item li LEFT JOIN civicrm_participant p on li.entity_id = p.id
 		LEFT JOIN civicrm_event e ON p.event_id = e.id
 		WHERE entity_table = 'civicrm_participant'
 		AND p.is_test  <> 1
@@ -574,7 +575,7 @@ $sql = "SELECT ANY_VALUE(li.id) as lineitem_id , ANY_VALUE(li.label) as lineitem
   	$li_where = self::getListItemWhere();
   
   	$tmp_sql =   "SELECT distinct(pf.id) as priceset_field_id, pf.name as priceset_field_name, pf.label as priceset_field_label,
-    	                      ANY_VALUE(li.label) as line_item_name, price_field_value_id as price_field_value_id
+    	                     ANY_VALUE(li.label) as line_item_name, price_field_value_id as price_field_value_id
          			 FROM civicrm_participant p
 				 LEFT JOIN civicrm_line_item li ON p.id = li.entity_id
 				 AND li.entity_table = 'civicrm_participant'

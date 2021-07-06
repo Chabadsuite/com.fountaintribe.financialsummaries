@@ -22,7 +22,7 @@
      
      
    if( strlen( $start_date ) > 0 && strlen( $end_date) > 0){
-    // $date_where_clause = " AND ( date(contrib.receive_date) >= '$start_date'  AND date(contrib.receive_date) <= '$end_date' ) "; 
+     $date_where_clause = " AND ( date(contrib.receive_date) >= '$start_date'  AND date(contrib.receive_date) <= '$end_date' ) "; 
      
    }else{
    	print "<br><br><br><b>ERROR: getPrepaymentDetails: Start date and end dates are required. </b>"; 
@@ -225,8 +225,12 @@ $dao =& CRM_Core_DAO::executeQuery( $sql_str,   CRM_Core_DAO::$_nullArray ) ;
 	    
           foreach($rel_ids as $rel_cid){
   	   
-  	    $tmp_html = $tmp_html.$tmp_completed_detail_rows[$rel_cid];
-  	    $tmp_sub = $tmp_sub + $tmp_completed_sub_total[$rel_cid];
+       if(!isset($tmp_completed_detail_rows)){
+             $tmp_html = $tmp_html.$tmp_completed_detail_rows[$rel_cid];
+          }
+       if(!isset($tmp_completed_sub_total)){
+            $tmp_sub = $tmp_sub + $tmp_completed_sub_total[$rel_cid];
+          }
   	    
   	}
   	

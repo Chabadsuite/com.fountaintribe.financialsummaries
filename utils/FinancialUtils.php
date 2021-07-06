@@ -665,7 +665,7 @@ and p.is_test = 0
 		$sql_str = "";
 
 		
-			$sql_str = "select ANY_VALUE(contrib.id), contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type,
+			$sql_str = "select ANY_VALUE(contrib.id) as id, contrib.contact_id as contact_id, ANY_VALUE(ct.name) as contrib_type,
 			contrib.source as source, contrib.total_amount as total_amount,
 			month( contrib.receive_date ) as mm_date, day(contrib.receive_date ) as dd_date ,
 			year(contrib.receive_date ) as yyyy_date , civicrm_currency.symbol
@@ -773,7 +773,9 @@ and p.is_test = 0
 
 
 		$obligation_total = $sub_total;
-		$tmp_sub_total = $currency_symbol.number_format($sub_total, 2);
+		if (!empty($currency_symbol)){
+		   $tmp_sub_total = $currency_symbol.number_format($sub_total, 2);
+		}
 		$tmp_obligation_sub_total[$prev_cid] = $sub_total;
 
 		//print "<br>cid: ".$prev_cid." sub total ".$sub_total;
@@ -795,8 +797,10 @@ and p.is_test = 0
 			 
 			foreach($rel_ids as $rel_cid){
 
-				$tmp_html = $tmp_html.$tmp_obligation_detail_rows[$rel_cid];
-				$tmp_sub = $tmp_sub + $tmp_obligation_sub_total[$rel_cid];
+				if(!isset($tmp_obligation_detail_rows))
+			      $tmp_html = $tmp_html.$tmp_obligation_detail_rows[$rel_cid];
+				if(!isset($tmp_obligation_sub_total))
+			      $tmp_sub = $tmp_sub + $tmp_obligation_sub_total[$rel_cid];
 				 
 			}
 			 

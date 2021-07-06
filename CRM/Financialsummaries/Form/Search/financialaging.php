@@ -157,7 +157,7 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 	
 		
 		
-		 $financial_type_sql = "Select ct.id, ANY_VALUE(ct.name), fa.accounting_code from civicrm_financial_type ct
+		 $financial_type_sql = "Select ct.id, ANY_VALUE(ct.name) as name, fa.accounting_code from civicrm_financial_type ct
         	 	LEFT JOIN civicrm_entity_financial_account efa ON ct.id = efa.entity_id AND efa.entity_table = 'civicrm_financial_type'
         	 	AND efa.account_relationship = 1 
         	 	LEFT JOIN civicrm_financial_account fa ON efa.financial_account_id = fa.id 
@@ -697,7 +697,7 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 		       ) AND rel.is_active = 1 AND rel.relationship_type_id IN ( ".$tmp_rel_type_ids." )  ";
     		*/
     	}else{
-    		$tmp_contact_sql_contrib = " contrib.contact_id as contact_id, contrib.contact_id as underlying_contact_id ,";
+    		$tmp_contact_sql_contrib = " ANY_VALUE(contrib.contact_id) as contact_id, ANY_VALUE(contrib.contact_id) as underlying_contact_id ,";
     		$tmp_contact_sql_pledge =  " p.contact_id as contact_id, p.contact_id as underlying_contact_id , ";
     		
     		$tmp_from_sql_contrib = "";
@@ -734,7 +734,7 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 			
 	
 			$tmp_from = "( (SELECT ".$tmp_contact_sql_contrib."  sum(li.line_total) as total_amount, ANY_VALUE(contrib.id) as entity_id, 'contribution' as entity_type,
-	   	contrib.receipt_date, contrib.currency, contrib.source, ANY_VALUE(val.label), li.financial_type_id, contrib.receive_date as expected_date
+	   	ANY_VALUE(contrib.receipt_date) as receipt_date, ANY_VALUE(contrib.currency) as currency, ANY_VALUE(contrib.source) as source, ANY_VALUE(val.label), li.financial_type_id, ANY_VALUE(contrib.receive_date) as expected_date
 		FROM civicrm_line_item li JOIN civicrm_contribution contrib ON li.entity_id = ANY_VALUE(contrib.id) AND li.entity_table = 'civicrm_contribution' 
 		 ".$tmp_from_sql_contrib." ,
 		civicrm_option_value val, 
@@ -750,7 +750,7 @@ class CRM_Financialsummaries_Form_Search_financialaging extends CRM_Contact_Form
 		group by li.financial_type_id, ANY_VALUE(contrib.id) )
 		UNION ALL (
 		SELECT ".$tmp_contact_sql_contrib."  sum(li.line_total) as total_amount, ANY_VALUE(contrib.id) as entity_id, 'contribution' as entity_type,
-	   	contrib.receipt_date, contrib.currency, contrib.source, ANY_VALUE(val.label), li.financial_type_id, contrib.receive_date as expected_date
+	   	ANY_VALUE(contrib.receipt_date) as receipt_date, ANY_VALUE(contrib.currency) as currency, ANY_VALUE(contrib.source) as source, ANY_VALUE(val.label), li.financial_type_id, ANY_VALUE(contrib.receive_date) as expected_date
 		FROM civicrm_line_item li JOIN civicrm_participant part ON li.entity_id = part.id AND li.entity_table =  'civicrm_participant' 
 	 JOIN civicrm_participant_payment ep ON ifnull( part.registered_by_id, part.id) = ep.participant_id
 				join civicrm_contribution contrib ON  ep.contribution_id = ANY_VALUE(contrib.id)

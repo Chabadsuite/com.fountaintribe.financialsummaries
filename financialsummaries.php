@@ -254,12 +254,12 @@ function  financialsummaries_civicrm_tokenValues( &$values, &$contactIDs, $job =
 }
 
 
-function financialsummaries_civicrm_tabs( &$tabs, $contactID ) {
-// if (pogstone_is_user_authorized('access CiviContribute')){
-	if ( 1==1){
+function financialsummaries_civicrm_tabset($tabsetName, &$tabs, $context) {
+ if ($tabsetName == 'civicrm/contact/view') {
 
 
 	$contactIds = array();
+	$contactID = $context['contact_id'];
 	$contactIds[] = $contactID;
 
 	$token_format = "backoffice_screen";

@@ -103,7 +103,8 @@ class FormattingUtils{
 
 		}
 		 
-		$parm_as_timestamp = mktime(0, 0, 0, $month, $day, $year);
+		$yearval = intval($year);
+		$parm_as_timestamp = mktime(0, 0, 0, $month, $day, $yearval);
 		$output_date = date( $output_format, $parm_as_timestamp);
 		 
 		//print "<br>Output formatted date: ".$output_date ;
@@ -148,7 +149,8 @@ class FormattingUtils{
 
 		}
 		 
-		$parm_as_timestamp = mktime(0, 0, 0, $month, $day, $year);
+		$yearval = intval($year);
+		$parm_as_timestamp = mktime(0, 0, 0, $month, $day, $yearval);
 		$output_date = date( $output_format, $parm_as_timestamp);
 		 
 		//print "<br>Output formatted date: ".$output_date ;

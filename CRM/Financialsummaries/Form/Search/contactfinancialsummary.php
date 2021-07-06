@@ -160,7 +160,7 @@ class CRM_Financialsummaries_Form_Search_contactfinancialsummary extends CRM_Con
   	  
   	 */
   
-  	$financial_type_sql = "Select ANY_VALUE(ct.id), ANY_VALUE(ct.name), ANY_VALUE(fa.accounting_code) from civicrm_financial_type ct
+  	$financial_type_sql = "Select ANY_VALUE(ct.id) as id, ANY_VALUE(ct.name) as name, ANY_VALUE(fa.accounting_code) as accounting_code from civicrm_financial_type ct
         	 	LEFT JOIN civicrm_entity_financial_account efa ON ct.id = efa.entity_id AND efa.entity_table = 'civicrm_financial_type'
         	 	AND efa.account_relationship = 1
         	 	LEFT JOIN civicrm_financial_account fa ON efa.financial_account_id = fa.id
